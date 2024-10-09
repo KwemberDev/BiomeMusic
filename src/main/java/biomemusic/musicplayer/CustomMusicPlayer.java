@@ -3,13 +3,16 @@ package biomemusic.musicplayer;
 import biomemusic.BiomeMusic;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.SoundCategory;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.sound.sampled.*;
 import java.io.File;
-import java.io.IOException;
 
 import static biomemusic.handlers.BiomeMusicConfig.fadeOptions;
 
+
+@SideOnly(Side.CLIENT)
 public class CustomMusicPlayer {
 
     private static Clip musicClip;
@@ -23,6 +26,7 @@ public class CustomMusicPlayer {
     private static String currentMusicFilePath = ""; // Store the currently playing music file path
 
     // Play custom music with fade-in
+    @SideOnly(Side.CLIENT)
     public static void playCustomMusic(String filePath) {
         try {
             // If music is already playing, fade it out first
@@ -46,6 +50,7 @@ public class CustomMusicPlayer {
     }
 
     // Load and play a new music file
+    @SideOnly(Side.CLIENT)
     private static void loadAndPlayMusic(String filePath) throws Exception {
         stopMusic(); // Stop any currently playing music
 
@@ -79,6 +84,7 @@ public class CustomMusicPlayer {
         BiomeMusic.LOGGER.info("Started music: {}", filePath);
     }
 
+    @SideOnly(Side.CLIENT)
     private static void fadeOutMusicAndPlayNew(String newFilePath) {
         if (musicClip == null) {
             try {
@@ -120,8 +126,8 @@ public class CustomMusicPlayer {
         }).start();
     }
 
-
     // Fade in the music over a given duration (in milliseconds)
+    @SideOnly(Side.CLIENT)
     private static void fadeInMusic(int durationMs) {
         if (musicClip != null) {
             try {
@@ -159,6 +165,7 @@ public class CustomMusicPlayer {
     }
 
     // Fade out the music over a given duration (in milliseconds) and stop it
+    @SideOnly(Side.CLIENT)
     public static void stopMusicWithFadeOut() {
         if (musicClip != null && isMusicPlaying) {
             isFading = true;
@@ -187,6 +194,7 @@ public class CustomMusicPlayer {
         }
     }
 
+    @SideOnly(Side.CLIENT)
     public static void stopMusic() {
         if (musicClip != null && musicClip.isRunning()) {
             musicClip.stop();
@@ -200,6 +208,7 @@ public class CustomMusicPlayer {
     }
 
     // Pause the music
+    @SideOnly(Side.CLIENT)
     public static void pauseMusic() {
         if (musicClip != null && musicClip.isRunning()) {
             pausePosition = musicClip.getMicrosecondPosition(); // Save the position
@@ -210,6 +219,7 @@ public class CustomMusicPlayer {
     }
 
     // Resume the music from the last paused position
+    @SideOnly(Side.CLIENT)
     public static void resumeMusic() {
         if (musicClip != null && isPaused) {
             musicClip.setMicrosecondPosition(pausePosition); // Resume from where paused

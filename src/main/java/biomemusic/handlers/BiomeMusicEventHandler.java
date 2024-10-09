@@ -5,29 +5,26 @@ import biomemusic.musicplayer.CustomMusicPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.MusicTicker;
-import net.minecraft.client.audio.Sound;
+import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.audio.SoundManager;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
-import net.minecraftforge.fml.common.registry.ForgeRegistries;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.lang.reflect.Field;
-import java.util.Map;
 
 import static biomemusic.handlers.BiomeMusicConfig.fadeOptions;
-import static biomemusic.musicplayer.CustomMusicPlayer.adjustVolume;
 import static biomemusic.musicplayer.CustomMusicPlayer.isFading;
 
+@SideOnly(Side.CLIENT)
 @Mod.EventBusSubscriber
 public class BiomeMusicEventHandler {
 
@@ -57,6 +54,7 @@ public class BiomeMusicEventHandler {
         }
     }
 
+    @SideOnly(Side.CLIENT)
     private static void handleBiomeMusic(EntityPlayer player, Biome biome) {
         // Get the biome's registry name instead of the human-readable name
         ResourceLocation biomeRegistryName = biome.getRegistryName();
@@ -100,6 +98,7 @@ public class BiomeMusicEventHandler {
         }
     }
 
+    @SideOnly(Side.CLIENT)
     private static void fadeOutVanillaMusic() {
         try {
             Minecraft mc = Minecraft.getMinecraft();
@@ -107,7 +106,7 @@ public class BiomeMusicEventHandler {
             MusicTicker musicTicker = mc.getMusicTicker();
 
             // Use reflection to access the currentMusic field in MusicTicker
-            Field currentMusicField = MusicTicker.class.getDeclaredField("currentMusic");
+            Field currentMusicField = ObfuscationReflectionHelper.findField(MusicTicker.class, "field_147678_c");
             currentMusicField.setAccessible(true);
 
             // Get the current ISound instance (vanilla music)
@@ -121,7 +120,7 @@ public class BiomeMusicEventHandler {
                     try {
                         float volume = 1.0f; // Start at full volume
                         float fadeDuration = (float) fadeOptions.vanillaMusicFadeOutTime; // Fade over 10 seconds
-                        float fadeSteps = 50; // How many steps to fade
+                        float fadeSteps = 100; // How many steps to fade
                         float stepTime = fadeDuration / fadeSteps; // Time between steps
                         float volumeStep = volume / fadeSteps; // Volume decrease per step
 
@@ -144,12 +143,13 @@ public class BiomeMusicEventHandler {
                     }
                 }).start();
             }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
     }
 
     // Method to set the volume for the MUSIC category
+    @SideOnly(Side.CLIENT)
     private static void setMusicVolume(SoundCategory category, float volume) {
         Minecraft mc = Minecraft.getMinecraft();
 
@@ -158,7 +158,7 @@ public class BiomeMusicEventHandler {
 
         try {
             // Access the private sndManager field via reflection
-            Field sndManagerField = mc.getSoundHandler().getClass().getDeclaredField("sndManager");
+            Field sndManagerField = ObfuscationReflectionHelper.findField(SoundHandler.class, "field_147694_f");
             sndManagerField.setAccessible(true); // Make the field accessible
 
             // Get the SoundManager instance from SoundHandler
@@ -167,25 +167,26 @@ public class BiomeMusicEventHandler {
             // Use the setVolume method to adjust the volume for the specific category
             soundManager.setVolume(category, volume);
 
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
     }
 
     // Method to restore the original volume after stopping the sound
+    @SideOnly(Side.CLIENT)
     private static void restoreMusicVolume() {
         Minecraft mc = Minecraft.getMinecraft();
         setMusicVolume(SoundCategory.MUSIC, originalMusicVolume);
         BiomeMusic.LOGGER.info("Vanilla music volume restored to: {}", originalMusicVolume);
     }
 
-
+    @SideOnly(Side.CLIENT)
     private static void stopVanillaMusic() {
         try {
             Minecraft mc = Minecraft.getMinecraft();
             originalMusicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
             MusicTicker musicTicker = mc.getMusicTicker();
-            Field currentMusicField = MusicTicker.class.getDeclaredField("currentMusic");
+            Field currentMusicField = ObfuscationReflectionHelper.findField(MusicTicker.class, "field_147678_c");
             currentMusicField.setAccessible(true);
             ISound currentMusic = (ISound) currentMusicField.get(musicTicker);
 
@@ -198,7 +199,7 @@ public class BiomeMusicEventHandler {
                     restoreMusicVolume();
                 }).start();
             }
-        } catch (NoSuchFieldException | IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
     }

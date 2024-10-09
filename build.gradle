@@ -10,11 +10,9 @@ buildscript {
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7.+'
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.spongepowered.mixin'
 
 version = "${mod_version}"
 group = "${mod_id}"
@@ -66,16 +64,8 @@ repositories {
 
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-
-    implementation "org.spongepowered:mixin:0.8.5"
-    annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
-
     implementation 'com.googlecode.soundlibs:vorbisspi:1.0.3.3'
 
-}
-
-mixin {
-    add sourceSets.main, "mixins.${mod_id}.refmap.json"
 }
 
 processResources {
@@ -98,10 +88,21 @@ jar {
                 "Implementation-Version"  : mod_version,
                 "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
                 "FMLCorePluginContainsFMLMod": "true",
-                "ForceLoadAsMod": "true", //Comment out for dev enviroment, uncomment for build
-                "TweakClass": "org.spongepowered.asm.launch.MixinTweaker"
+                "ForceLoadAsMod": "true", // Comment out for dev environment, uncomment for build
+                'FMLAT': 'biomemusic_at.cfg'  // Point to the access transformer config
         ])
     }
+
+    // Include all runtime dependencies (like vorbisspi) in the jar
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    // Prevent duplicate files (like META-INF files) that can cause issues
+    exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+
+    // Handle duplicates - 'exclude' or 'include' can be used based on your needs
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 jar.finalizedBy('reobfJar')
