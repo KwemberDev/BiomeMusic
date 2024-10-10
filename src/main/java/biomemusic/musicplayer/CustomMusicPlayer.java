@@ -100,21 +100,31 @@ public class CustomMusicPlayer {
         isFading = true;
         FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
+        // Get the current volume based on Minecraft's sound settings
+        Minecraft mc = Minecraft.getMinecraft();
+        float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
+
+        // Get the minimum and maximum possible volume
+        float minVolume = volumeControl.getMinimum(); // Usually -80 dB
+        float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
+
+        // Calculate the current volume in decibels based on Minecraft's music volume setting
+        float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (maxVolume - minVolume));
+
         new Thread(() -> {
             try {
-                float maxVolume = volumeControl.getMaximum();
-                float minVolume = volumeControl.getMinimum();
                 int fadeSteps = 100;
                 long fadeInterval = FADE_OUT_DURATION_MS / fadeSteps;
-                float volumeStep = (maxVolume - minVolume) / fadeSteps;
+                float volumeStep = (currentVolume - minVolume) / fadeSteps;
 
+                // Gradually decrease the volume from the current volume to the minimum volume
                 for (int i = fadeSteps; i >= 0; i--) {
-                    float currentVolume = minVolume + (i * volumeStep);
-                    volumeControl.setValue(currentVolume);
+                    float newVolume = minVolume + (i * volumeStep);
+                    volumeControl.setValue(newVolume);
                     Thread.sleep(fadeInterval);
                 }
 
-                // After fade-out, stop the current music
+                // After fade-out, stop the current music and load/play the new music
                 stopMusic();
                 loadAndPlayMusic(newFilePath);
                 fadeInMusic(FADE_IN_DURATION_MS);
@@ -134,26 +144,34 @@ public class CustomMusicPlayer {
                 isFading = true;
                 FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
-                float maxVolume = volumeControl.getMaximum();
-                float minVolume = volumeControl.getMinimum();
+                // Get the current volume based on Minecraft's sound settings
+                Minecraft mc = Minecraft.getMinecraft();
+                float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
 
-                // Set volume to minimum initially
+                // Get the minimum and maximum possible volume
+                float minVolume = volumeControl.getMinimum(); // Usually -80 dB
+                float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
+
+                // Calculate the target volume (maximum for fade-in) based on Minecraft's music volume setting
+                float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (maxVolume - minVolume));
+
+                // Set the volume to minimum initially
                 volumeControl.setValue(minVolume);
 
                 int fadeSteps = 100;
                 long fadeInterval = durationMs / fadeSteps;
-                float volumeStep = (maxVolume - minVolume) / fadeSteps;
+                float volumeStep = (targetVolume - minVolume) / fadeSteps;
 
                 new Thread(() -> {
                     try {
+                        // Gradually increase the volume from the minimum to the target volume
                         for (int i = 0; i <= fadeSteps; i++) {
                             float currentVolume = minVolume + (i * volumeStep);
                             volumeControl.setValue(currentVolume);
                             Thread.sleep(fadeInterval);
                         }
-                        volumeControl.setValue(maxVolume);
+                        volumeControl.setValue(targetVolume);  // Ensure it's at target volume at the end
                         isFading = false;
-                        // Ensure it's at max at the end
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -171,17 +189,27 @@ public class CustomMusicPlayer {
             isFading = true;
             FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
+            // Get the current volume based on Minecraft's sound settings
+            Minecraft mc = Minecraft.getMinecraft();
+            float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
+
+            // Get the minimum and maximum possible volume
+            float minVolume = volumeControl.getMinimum(); // Usually -80 dB
+            float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
+
+            // Calculate the current volume in decibels based on Minecraft's music volume setting
+            float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (maxVolume - minVolume));
+
             new Thread(() -> {
                 try {
-                    float maxVolume = volumeControl.getMaximum();
-                    float minVolume = volumeControl.getMinimum();
                     int fadeSteps = 100;
                     long fadeInterval = FADE_OUT_DURATION_MS / fadeSteps;
-                    float volumeStep = (maxVolume - minVolume) / fadeSteps;
+                    float volumeStep = (currentVolume - minVolume) / fadeSteps;
 
+                    // Gradually decrease the volume from the current volume to the minimum volume
                     for (int i = fadeSteps; i >= 0; i--) {
-                        float currentVolume = minVolume + (i * volumeStep);
-                        volumeControl.setValue(currentVolume);
+                        float newVolume = minVolume + (i * volumeStep);
+                        volumeControl.setValue(newVolume);
                         Thread.sleep(fadeInterval);
                     }
 

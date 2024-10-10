@@ -28,6 +28,11 @@ public class BiomeMusicConfig {
 	@Config.Name("Fade Options")
 	public static final FadeOptions fadeOptions = new FadeOptions();
 
+	@Config.Name("Ambient Mode")
+	@Config.Comment("Enable or Disable Ambient mode. In this mode vanilla music will not be turned off when a custom music is set for a biome." +
+					"\nEnable if you want to use this mod for ambience sound tracks instead of music.")
+	public static boolean ambientMode = false;
+
 
 	@Mod.EventBusSubscriber(modid = BiomeMusic.MODID)
 	public static class EventHandler {

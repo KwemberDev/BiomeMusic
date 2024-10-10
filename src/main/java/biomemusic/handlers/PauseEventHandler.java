@@ -3,7 +3,13 @@ package biomemusic.handlers;
 import biomemusic.BiomeMusic;
 import biomemusic.musicplayer.CustomMusicPlayer;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.*;
+import net.minecraft.client.gui.achievement.GuiStats;
+import net.minecraft.client.gui.advancements.GuiAdvancement;
 import net.minecraftforge.event.world.WorldEvent;
+import net.minecraftforge.fml.client.GuiDupesFound;
+import net.minecraftforge.fml.client.GuiModList;
+import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
@@ -28,43 +34,58 @@ public class PauseEventHandler {
             return;  // Exit early, no need to check further
         }
 
-        // If the game is paused, pause the music
-        if (mc.isGamePaused()) {
+        // Check if any pause-related GUI is open, including submenus from the pause screen
+        if (isPauseMenuOpen(mc)) {
+            // If a pause menu is open, pause the music
             if (CustomMusicPlayer.isMusicPlaying() && !CustomMusicPlayer.isPaused()) {
                 CustomMusicPlayer.pauseMusic();
                 BiomeMusic.LOGGER.info("Paused Music");
             }
         } else {
-            // If the game is resumed and music was paused, resume it
+            // If no pause-related menu is open, resume the music if it was paused
             if (CustomMusicPlayer.isPaused()) {
-                if (!isFading) {
-                    adjustVolume();
+                if (!CustomMusicPlayer.isFading) {  // Use the class's field for fading check
+                    CustomMusicPlayer.adjustVolume();
                 }
                 CustomMusicPlayer.resumeMusic();
             }
         }
     }
 
-    @SubscribeEvent
-    public void onWorldUnload(WorldEvent.Unload event) {
-        // Check if this is the client side (since we only care about the client)
-        if (event.getWorld().isRemote) {
-            // Stop any custom music that is playing
-            if (CustomMusicPlayer.isMusicPlaying()) {
-                CustomMusicPlayer.stopMusic();
-                BiomeMusic.LOGGER.info("Stopped music due to world unload");
-            }
+    private boolean isPauseMenuOpen(Minecraft mc) {
+        if (mc.currentScreen == null) {
+            return false;  // No screen is open, game is not paused
         }
+
+        // Check for known pause-related GUIs
+        boolean isKnownPauseMenu = mc.currentScreen instanceof GuiIngameMenu
+                || mc.currentScreen instanceof GuiOptions
+                || mc.currentScreen instanceof GuiStats
+                || mc.currentScreen instanceof GuiVideoSettings
+                || mc.currentScreen instanceof GuiControls
+                || mc.currentScreen instanceof GuiLanguage
+                || mc.currentScreen instanceof GuiScreenOptionsSounds
+                || mc.currentScreen instanceof GuiConfig
+                || mc.currentScreen instanceof GuiGameOver
+                || mc.currentScreen instanceof GuiScreenResourcePacks
+                || mc.currentScreen instanceof GuiShareToLan
+                || mc.currentScreen instanceof GuiModList
+                || mc.currentScreen instanceof GuiCustomizeSkin
+                || mc.currentScreen instanceof GuiSnooper
+                || mc.currentScreen instanceof ScreenChatOptions
+                ;
+
+        // Additional checks for GUIs that do not extend GuiScreen
+        if (mc.currentScreen.getClass().getName().contains("Advancement")) {
+            return true;  // Pause for advancement GUI
+        }
+
+        if (mc.currentScreen.getClass().getName().contains("LockIconButton")) {
+            return true;  // Pause for lock icon GUI
+        }
+
+        // If any of the known or custom conditions are met, return true
+        return isKnownPauseMenu;
     }
 
-    @SubscribeEvent
-    public void onPlayerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        // Check if the event is triggered on the client side
-        if (event.player.world.isRemote) {
-            if (CustomMusicPlayer.isMusicPlaying()) {
-                CustomMusicPlayer.stopMusic();
-                BiomeMusic.LOGGER.info("Stopped music due to player logout");
-            }
-        }
-    }
 }

@@ -21,6 +21,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.lang.reflect.Field;
 
+import static biomemusic.handlers.BiomeMusicConfig.ambientMode;
 import static biomemusic.handlers.BiomeMusicConfig.fadeOptions;
 import static biomemusic.musicplayer.CustomMusicPlayer.isFading;
 
@@ -73,7 +74,7 @@ public class BiomeMusicEventHandler {
                 if ((!CustomMusicPlayer.isMusicPlaying() || !CustomMusicPlayer.isCurrentTrack(filePath)) && !isFading) {
                     // If not playing or the wrong track is playing, stop and start the new one
 
-                    if (!isVanillaMusicFading) {
+                    if (!isVanillaMusicFading && !ambientMode) {
                         fadeOutVanillaMusic();
                     }
 
@@ -81,7 +82,7 @@ public class BiomeMusicEventHandler {
                     BiomeMusic.LOGGER.info("Tried to set up custom music for {}", biomeRegistryName);
                 }
                 // if the vanilla music isnt fading, and if the correct custom music is playing. once every 10 seconds fade out vanilla music to prevent it coming back.
-                if ((!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying())) {
+                if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
                     stopVanillaMusic();
                     BiomeMusic.LOGGER.info("TRIED TO STOP VANILLA MUSIC WHILE CUSTOM IS PLAYING AGAIN");
                 }
