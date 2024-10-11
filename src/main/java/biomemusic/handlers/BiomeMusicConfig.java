@@ -17,12 +17,17 @@ import java.util.Map;
 @Config(modid = BiomeMusic.MODID)
 public class BiomeMusicConfig {
 
+	@Config.Comment("What music to play on the main menu.")
+	@Config.Name("Main Menu Music")
+	public static String mainMenuMusic = "default_music";
+
+	@Config.Comment("List of recognized .ogg music files")
+	public static String[] availableMusicFiles = new String[0]; // Start with an empty array
+
 	@Config.Comment("Biome Music Mapping")
 	public static Map<String, String> biomeMusicMap = new HashMap<>();
 
 	// List of available music files (now using a String array)
-	@Config.Comment("List of recognized .ogg music files")
-	public static String[] availableMusicFiles = new String[0]; // Start with an empty array
 
 	@Config.Comment("Fade Options")
 	@Config.Name("Fade Options")
@@ -32,6 +37,7 @@ public class BiomeMusicConfig {
 	@Config.Comment("Enable or Disable Ambient mode. In this mode vanilla music will not be turned off when a custom music is set for a biome." +
 					"\nEnable if you want to use this mod for ambience sound tracks instead of music.")
 	public static boolean ambientMode = false;
+
 
 
 	@Mod.EventBusSubscriber(modid = BiomeMusic.MODID)

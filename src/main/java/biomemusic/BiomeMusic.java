@@ -1,7 +1,6 @@
 package biomemusic;
 
 import biomemusic.handlers.BiomeMusicConfig;
-import biomemusic.handlers.BiomeMusicEventHandler;
 import biomemusic.handlers.PauseEventHandler;
 import biomemusic.proxy.CommonProxy;
 import net.minecraftforge.common.MinecraftForge;
@@ -19,7 +18,7 @@ import java.io.File;
 @Mod(modid = BiomeMusic.MODID, version = BiomeMusic.VERSION, name = BiomeMusic.NAME)
 public class BiomeMusic {
     public static final String MODID = "biomemusic";
-    public static final String VERSION = "Alpha 0.0.2";
+    public static final String VERSION = "Beta 0.0.3";
     public static final String NAME = "BiomeMusic!";
     public static final Logger LOGGER = LogManager.getLogger();
 	

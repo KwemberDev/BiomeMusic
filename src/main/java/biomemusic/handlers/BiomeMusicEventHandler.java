@@ -182,7 +182,7 @@ public class BiomeMusicEventHandler {
     }
 
     @SideOnly(Side.CLIENT)
-    private static void stopVanillaMusic() {
+    public static void stopVanillaMusic() {
         try {
             Minecraft mc = Minecraft.getMinecraft();
             originalMusicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
@@ -196,7 +196,6 @@ public class BiomeMusicEventHandler {
                 new Thread(() -> {
                     mc.getSoundHandler().stopSound(currentMusic);
                     isVanillaMusicFading = false; // Reset fading flag
-                    BiomeMusic.LOGGER.info("FORCIBLY STOPPED VANILLA MUSIC WHILE CUSTOM MUSIC IS PLAYING DND");
                     restoreMusicVolume();
                 }).start();
             }

@@ -51,7 +51,7 @@ public class CustomMusicPlayer {
 
     // Load and play a new music file
     @SideOnly(Side.CLIENT)
-    private static void loadAndPlayMusic(String filePath) throws Exception {
+    public static void loadAndPlayMusic(String filePath) throws Exception {
         stopMusic(); // Stop any currently playing music
 
         // Load the new music file
@@ -77,13 +77,23 @@ public class CustomMusicPlayer {
         musicClip = (Clip) AudioSystem.getLine(info);
         musicClip.open(pcmStream);
 
+        // Add a listener to repeat the track when it ends
+        musicClip.addLineListener(event -> {
+            if (event.getType() == LineEvent.Type.STOP && !isPaused && !isFading) {
+                if (musicClip.getMicrosecondPosition() >= musicClip.getMicrosecondLength()) {
+                    // Music has ended, restart from the beginning
+                    musicClip.setMicrosecondPosition(0); // Rewind to the start
+                    musicClip.start(); // Play again
+                }
+            }
+        });
+
         // Start playing the music
         musicClip.start();
         isMusicPlaying = true;
         isPaused = false;
         BiomeMusic.LOGGER.info("Started music: {}", filePath);
     }
-
     @SideOnly(Side.CLIENT)
     private static void fadeOutMusicAndPlayNew(String newFilePath) {
         if (musicClip == null) {

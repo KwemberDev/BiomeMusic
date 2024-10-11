@@ -15,6 +15,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuMusicPlaying;
 import static biomemusic.musicplayer.CustomMusicPlayer.adjustVolume;
 import static biomemusic.musicplayer.CustomMusicPlayer.isFading;
 
@@ -26,7 +27,7 @@ public class PauseEventHandler {
         Minecraft mc = Minecraft.getMinecraft();
 
         // Check if the player is in a world or not
-        if (mc.world == null) {
+        if (mc.world == null && !isMainMenuMusicPlaying) {
             // If no world is loaded (i.e., player is in main menu), stop any playing music
             if (CustomMusicPlayer.isMusicPlaying()) {
                 CustomMusicPlayer.stopMusic();

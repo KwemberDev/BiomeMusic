@@ -1,7 +1,7 @@
 package biomemusic.proxy;
 
 import biomemusic.handlers.BiomeMusicEventHandler;
-import biomemusic.handlers.PauseEventHandler;
+import biomemusic.handlers.MainMenuMusicHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -15,6 +15,7 @@ public class ClientProxy extends CommonProxy {
     public void preInit(FMLPreInitializationEvent e) {
         super.preInit(e);
         MinecraftForge.EVENT_BUS.register(new BiomeMusicEventHandler());
+        MinecraftForge.EVENT_BUS.register(new MainMenuMusicHandler());
     }
 
 
