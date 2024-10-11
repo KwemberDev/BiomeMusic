@@ -28,22 +28,37 @@ public class MainMenuMusicHandler {
     public static boolean isMainMenuMusicPlaying = false;
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) throws Exception {
-        Minecraft mc = Minecraft.getMinecraft();
+    public static void onClientTick(TickEvent.ClientTickEvent event) {
 
-        // Check if the current screen is one of the main menus
-        if (isMainMenuScreen(mc)) {
-            // Stop any vanilla music and play custom music
-            stopVanillaMusicMainMenu();
-            playMainMenuMusic();
-        } else {
-            // If no longer in the main menu, stop the custom music
-            if (isMainMenuMusicPlaying) {
-                CustomMusicPlayer.stopMusic();
-                isMainMenuMusicPlaying = false;
+        String mainMenuMusicPath = BiomeMusicConfig.mainMenuMusic; // Get the music from the config
+
+        // Check if the music is set and not equal to the default placeholder
+        if (mainMenuMusicPath != null && !mainMenuMusicPath.equals("default_music")) {
+
+            Minecraft mc = Minecraft.getMinecraft();
+
+            // Check if the current screen is one of the main menus
+            if (isMainMenuScreen(mc)) {
+                // Stop any vanilla music and attempt to play the custom music
+                stopVanillaMusicMainMenu();
+
+                // Wrap the custom music player in a try-catch block to handle invalid file paths
+                try {
+                    playMainMenuMusic();  // Pass the file path to play
+                } catch (Exception e) {
+                    // Log an error if the music file cannot be found or loaded
+                    BiomeMusic.LOGGER.error("Failed to play main menu music. File not found or invalid: {}", mainMenuMusicPath, e);
+                }
+            } else {
+                // If no longer in the main menu, stop the custom music
+                if (isMainMenuMusicPlaying) {
+                    CustomMusicPlayer.stopMusic();
+                    isMainMenuMusicPlaying = false;
+                }
             }
         }
     }
+
 
     // Check if the current screen is one where you want to stop the vanilla music and play custom music
     private static boolean isMainMenuScreen(Minecraft mc) {
