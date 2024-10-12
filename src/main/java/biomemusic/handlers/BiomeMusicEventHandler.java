@@ -8,10 +8,12 @@ import net.minecraft.client.audio.MusicTicker;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.audio.SoundManager;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Biomes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.BiomeRiver;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -38,6 +40,13 @@ public class BiomeMusicEventHandler {
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
 
         tickCounter++;
+
+        if (fadeOptions.pollingRate == 0) {
+            if (tickCounter % 200 == 0) {
+                BiomeMusic.LOGGER.warn("POLLING RATE IS SET TO 0 IN BIOMEMUSIC CONFIG. THIS WILL BREAK THE MOD. (forcibly stopped the mod to prevent crash.)");
+            }
+            return;
+        }
 
         // every 7 seconds
         if (tickCounter % fadeOptions.pollingRate == 0) {
@@ -66,7 +75,7 @@ public class BiomeMusicEventHandler {
             // Use the registry name (e.g., "minecraft:extreme_hills") as the key
             String musicFile = BiomeMusicConfig.biomeMusicMap.get(biomeRegistryName.toString());
 
-            if (musicFile != null && !musicFile.equals("default_music")) {
+            if (musicFile != null && !musicFile.equals("default_music") && biome != Biomes.RIVER) {
                 // Construct the path to the .ogg file in the biomemusic folder
                 String filePath = BiomeMusic.musicFolder.getPath() + "/" + musicFile;
 
@@ -89,7 +98,7 @@ public class BiomeMusicEventHandler {
             } else {
 
                 // Play vanilla music (or stop custom music if needed)
-                if (CustomMusicPlayer.isMusicPlaying() && !isFading && !isVanillaMusicFading) {
+                if (CustomMusicPlayer.isMusicPlaying() && !isFading && !isVanillaMusicFading && biome != Biomes.RIVER) {
                     CustomMusicPlayer.stopMusicWithFadeOut();
                     BiomeMusic.LOGGER.info("No custom music found for biome: {}. Playing vanilla music.", biomeRegistryName);
                 }
