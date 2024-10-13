@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiMainMenu;
 import net.minecraft.client.gui.GuiMultiplayer;
 import net.minecraft.client.gui.GuiWorldSelection;
 import net.minecraft.util.SoundCategory;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -28,7 +29,7 @@ public class MainMenuMusicHandler {
     public static boolean isMainMenuMusicPlaying = false;
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
+    public static void onClientTick(TickEvent.ClientTickEvent event) throws Exception {
 
         String mainMenuMusicPath = BiomeMusicConfig.mainMenuMusic; // Get the music from the config
 
@@ -37,21 +38,40 @@ public class MainMenuMusicHandler {
 
             Minecraft mc = Minecraft.getMinecraft();
 
+            if (Loader.isModLoaded("custommainmenu")) {
+                if (mc.currentScreen != null && mc.currentScreen.getClass().getName().contains("lumien.custommainmenu")) {
+                    // This is a custom main menu screen
+                    stopVanillaMusicMainMenu();
+                    BiomeMusic.LOGGER.info("CUSTOM COMPAT MUSIC LOAD");
+                    playMainMenuMusic();
+                }
+                if (isMainMenuScreen(mc) && isMainMenuMusicPlaying) {
+                    stopVanillaMusicMainMenu();
+                }
+
+                if (mc.currentScreen != null && !mc.currentScreen.getClass().getName().contains("lumien.custommainmenu") && !isMainMenuScreen(mc)) {
+                    CustomMusicPlayer.stopMusic();
+                    isMainMenuMusicPlaying = false;
+                }
+
+            }
+
             // Check if the current screen is one of the main menus
-            if (isMainMenuScreen(mc)) {
+            if (isMainMenuScreen(mc) && !Loader.isModLoaded("lumien.custommainmenu")) {
                 // Stop any vanilla music and attempt to play the custom music
                 stopVanillaMusicMainMenu();
 
                 // Wrap the custom music player in a try-catch block to handle invalid file paths
                 try {
                     playMainMenuMusic();  // Pass the file path to play
+                    BiomeMusic.LOGGER.info("VANILLA CUSTOM MUSIC LOAD");
                 } catch (Exception e) {
                     // Log an error if the music file cannot be found or loaded
                     BiomeMusic.LOGGER.error("Failed to play main menu music. File not found or invalid: {}", mainMenuMusicPath, e);
                 }
-            } else {
+
                 // If no longer in the main menu, stop the custom music
-                if (isMainMenuMusicPlaying) {
+                 if (isMainMenuMusicPlaying && !isMainMenuScreen(mc)) {
                     CustomMusicPlayer.stopMusic();
                     isMainMenuMusicPlaying = false;
                 }
@@ -71,10 +91,10 @@ public class MainMenuMusicHandler {
     // Play custom music defined in the config
     private static void playMainMenuMusic() throws Exception {
         if (!isMainMenuMusicPlaying) {
+            isMainMenuMusicPlaying = true;
             String mainMenuMusicPath = BiomeMusicConfig.mainMenuMusic; // Get the music from the config
             String filePath = BiomeMusic.musicFolder.getPath() + "/" + mainMenuMusicPath;
             CustomMusicPlayer.loadAndPlayMusic(filePath); // Play the custom music
-            isMainMenuMusicPlaying = true;
         }
     }
 
