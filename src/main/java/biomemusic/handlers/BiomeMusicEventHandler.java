@@ -25,7 +25,8 @@ import java.lang.reflect.Field;
 
 import static biomemusic.handlers.BiomeMusicConfig.ambientMode;
 import static biomemusic.handlers.BiomeMusicConfig.fadeOptions;
-import static biomemusic.musicplayer.CustomMusicPlayer.isFading;
+import biomemusic.handlers.MainMenuMusicHandler.*;
+import static biomemusic.musicplayer.CustomMusicPlayer.*;
 
 @SideOnly(Side.CLIENT)
 @Mod.EventBusSubscriber
@@ -52,6 +53,9 @@ public class BiomeMusicEventHandler {
         if (tickCounter % fadeOptions.pollingRate == 0) {
 
             if (event.player != null && event.player.world != null) {
+                if (MainMenuMusicHandler.isMainMenuMusicPlaying) {
+                    MainMenuMusicHandler.isMainMenuMusicPlaying = false;
+                }
                 BlockPos pos = event.player.getPosition();
                 Biome biome = event.player.world.getBiome(pos);
                 String biomeName = biome.getBiomeName();

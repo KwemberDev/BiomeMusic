@@ -27,6 +27,7 @@ import static biomemusic.handlers.BiomeMusicEventHandler.stopVanillaMusic;
 public class MainMenuMusicHandler {
 
     public static boolean isMainMenuMusicPlaying = false;
+    public static String currentMusicPath = ""; // Track the currently playing music file
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) throws Exception {
@@ -64,7 +65,6 @@ public class MainMenuMusicHandler {
                 // Wrap the custom music player in a try-catch block to handle invalid file paths
                 try {
                     playMainMenuMusic();  // Pass the file path to play
-                    BiomeMusic.LOGGER.info("VANILLA CUSTOM MUSIC LOAD");
                 } catch (Exception e) {
                     // Log an error if the music file cannot be found or loaded
                     BiomeMusic.LOGGER.error("Failed to play main menu music. File not found or invalid: {}", mainMenuMusicPath, e);
@@ -90,14 +90,24 @@ public class MainMenuMusicHandler {
 
     // Play custom music defined in the config
     private static void playMainMenuMusic() throws Exception {
-        if (!isMainMenuMusicPlaying) {
-            isMainMenuMusicPlaying = true;
-            String mainMenuMusicPath = BiomeMusicConfig.mainMenuMusic; // Get the music from the config
-            String filePath = BiomeMusic.musicFolder.getPath() + "/" + mainMenuMusicPath;
-            CustomMusicPlayer.loadAndPlayMusic(filePath); // Play the custom music
-        }
-    }
+        String mainMenuMusicPath = BiomeMusicConfig.mainMenuMusic;  // Get the configured music file path
+        String filePath = BiomeMusic.musicFolder.getPath() + "/" + mainMenuMusicPath;
 
+        // Check if the correct music is already playing
+        if (isMainMenuMusicPlaying && currentMusicPath.equals(filePath)) {
+            // The correct music is already playing, no need to change
+            return;
+        }
+
+        BiomeMusic.LOGGER.info("Wrong custom menu music.");
+        // If the wrong music is playing or no music is playing, stop the current music and play the correct one
+        CustomMusicPlayer.stopMusic();  // Stop any currently playing music
+        CustomMusicPlayer.loadAndPlayMusic(filePath);  // Play the correct music
+        BiomeMusic.LOGGER.info("Tried to load: {}", filePath);
+        // Update the state to indicate music is playing and store the current track
+        isMainMenuMusicPlaying = true;
+        currentMusicPath = filePath;
+    }
 
     @SideOnly(Side.CLIENT)
     public static void stopVanillaMusicMainMenu() {
