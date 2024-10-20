@@ -43,7 +43,7 @@ public class CustomMusicPlayer {
             // Load and start the new music
             loadAndPlayMusic(filePath);
             fadeInMusic(FADE_IN_DURATION_MS); // Apply fade-in to the new track
-            currentMusicFilePath = filePath;  // Update the currently playing file path
+//            currentMusicFilePath = filePath;  // Update the currently playing file path
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -92,6 +92,7 @@ public class CustomMusicPlayer {
         musicClip.start();
         isMusicPlaying = true;
         isPaused = false;
+        currentMusicFilePath = filePath;
         BiomeMusic.LOGGER.info("Started music: {}", filePath);
     }
     @SideOnly(Side.CLIENT)

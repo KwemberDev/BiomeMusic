@@ -50,7 +50,7 @@ public class MainMenuMusicHandler {
                     stopVanillaMusicMainMenu();
                 }
 
-                if (mc.currentScreen != null && !mc.currentScreen.getClass().getName().contains("lumien.custommainmenu") && !isMainMenuScreen(mc)) {
+                if (isMainMenuMusicPlaying && mc.currentScreen != null && !mc.currentScreen.getClass().getName().contains("lumien.custommainmenu") && !isMainMenuScreen(mc)) {
                     CustomMusicPlayer.stopMusic();
                     isMainMenuMusicPlaying = false;
                 }
@@ -99,7 +99,7 @@ public class MainMenuMusicHandler {
             return;
         }
 
-        BiomeMusic.LOGGER.info("Wrong custom menu music.");
+        BiomeMusic.LOGGER.info("Wrong custom menu music. or no music playing");
         // If the wrong music is playing or no music is playing, stop the current music and play the correct one
         CustomMusicPlayer.stopMusic();  // Stop any currently playing music
         CustomMusicPlayer.loadAndPlayMusic(filePath);  // Play the correct music
