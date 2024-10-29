@@ -82,7 +82,6 @@ public class BiomeMusicEventHandler {
             if (musicFile != null && !musicFile.equals("default_music") && biome != Biomes.RIVER) {
                 // Construct the path to the .ogg file in the biomemusic folder
                 String filePath = BiomeMusic.musicFolder.getPath() + "/" + musicFile;
-
                 // Check if the current music playing is the same as the one for this biome
                 if ((!CustomMusicPlayer.isMusicPlaying() || !CustomMusicPlayer.isCurrentTrack(filePath)) && !isFading) {
                     // If not playing or the wrong track is playing, stop and start the new one
@@ -90,7 +89,7 @@ public class BiomeMusicEventHandler {
                     if (!isVanillaMusicFading && !ambientMode) {
                         fadeOutVanillaMusic();
                     }
-
+                    BiomeMusic.LOGGER.error("PLAYED NEW CUSTOM MUSIC.");
                     CustomMusicPlayer.playCustomMusic(filePath);
                     BiomeMusic.LOGGER.info("Tried to set up custom music for {}", biomeRegistryName);
                 }
