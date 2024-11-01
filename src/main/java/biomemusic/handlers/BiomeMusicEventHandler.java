@@ -14,6 +14,7 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeRiver;
+import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
@@ -22,6 +23,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.lang.reflect.Field;
+import java.util.*;
 
 import static biomemusic.handlers.BiomeMusicConfig.ambientMode;
 import static biomemusic.handlers.BiomeMusicConfig.fadeOptions;
@@ -35,6 +37,8 @@ public class BiomeMusicEventHandler {
     private static float originalMusicVolume; // To store the original music volume
     private static boolean isVanillaMusicFading = false; // Flag to check if fading
     private static int tickCounter = 0; // Counter for ticks
+    private static final Random random = new Random();
+    private static String currentlyPlayingTagSong;
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
@@ -100,10 +104,47 @@ public class BiomeMusicEventHandler {
                 }
             } else {
 
-                // Play vanilla music (or stop custom music if needed)
-                if (CustomMusicPlayer.isMusicPlaying() && !isFading && !isVanillaMusicFading && biome != Biomes.RIVER) {
-                    CustomMusicPlayer.stopMusicWithFadeOut();
-                    BiomeMusic.LOGGER.info("No custom music found for biome: {}. Playing vanilla music.", biomeRegistryName);
+                Set<BiomeDictionary.Type> biomeTags = BiomeDictionary.getTypes(biome);
+                if (!biomeTags.isEmpty() && biome != Biomes.RIVER) {
+                    String randomTagMusicFile = biomeTags.stream()
+                            .map(type -> getRandomSongForBiomeTag(type.getName().toLowerCase()))
+                            .filter(song -> !song.equals("default_music"))
+                            .findFirst()
+                            .orElse("default_music");
+
+                    if (!randomTagMusicFile.equals("default_music")) {
+
+                        Set<String> possibleSongs = new HashSet<>();
+
+                        for (BiomeDictionary.Type type : biomeTags) {
+                            String possibleSongList = BiomeMusicConfig.biomeTagMusicMap.getOrDefault(type.getName().toLowerCase(), "default_music");
+                            String[] songList = possibleSongList.split(",");
+                            possibleSongs.addAll(Arrays.asList(songList));
+                        }
+
+                        BiomeMusic.LOGGER.info("CURRENT LIST: {}", possibleSongs);
+
+                        if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentlyPlayingTagSong) && !isFading)) {
+                            String filePath = BiomeMusic.musicFolder.getPath() + "/" + randomTagMusicFile;
+                            if (!isVanillaMusicFading && !ambientMode) {
+                                fadeOutVanillaMusic();
+                            }
+                            playCustomMusic(filePath);
+                            currentlyPlayingTagSong = randomTagMusicFile;
+                            BiomeMusic.LOGGER.info("PLAYING CUSTOM MUSIC FROM TAGS.");
+                        }
+                        if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
+                            stopVanillaMusic();
+                            BiomeMusic.LOGGER.info("TRIED TO STOP VANILLA MUSIC WHILE CUSTOM IS PLAYING AGAIN");
+                        }
+                    } else {
+                        // Play vanilla music (or stop custom music if needed)
+                        if (CustomMusicPlayer.isMusicPlaying() && !isFading && !isVanillaMusicFading) {
+                            CustomMusicPlayer.stopMusicWithFadeOut();
+                            currentlyPlayingTagSong = null;
+                            BiomeMusic.LOGGER.info("No custom music found for biome: {}. Playing vanilla music.", biomeRegistryName);
+                        }
+                    }
                 }
             }
         } else {
@@ -160,8 +201,8 @@ public class BiomeMusicEventHandler {
             e.printStackTrace();
         }
     }
-
     // Method to set the volume for the MUSIC category
+
     @SideOnly(Side.CLIENT)
     private static void setMusicVolume(SoundCategory category, float volume) {
         Minecraft mc = Minecraft.getMinecraft();
@@ -184,8 +225,8 @@ public class BiomeMusicEventHandler {
             e.printStackTrace();
         }
     }
-
     // Method to restore the original volume after stopping the sound
+
     @SideOnly(Side.CLIENT)
     private static void restoreMusicVolume() {
         Minecraft mc = Minecraft.getMinecraft();
@@ -216,4 +257,20 @@ public class BiomeMusicEventHandler {
         }
     }
 
+    /**
+     * Fetches a random song for a given biome tag.
+     *
+     * @param biomeTag The tag to look up in biomeTagMusicMap.
+     * @return The file name of a randomly chosen song, or "default_music" if none is set.
+     */
+    public static String getRandomSongForBiomeTag(String biomeTag) {
+        // Look up the song string in biomeTagMusicMap, or fall back to "default_music"
+        String songList = BiomeMusicConfig.biomeTagMusicMap.getOrDefault(biomeTag, "default_music");
+
+        // Split the song string by commas to get an array of songs
+        List<String> songs = Arrays.asList(songList.split(","));
+
+        // Randomly select one song from the list
+        return songs.get(random.nextInt(songs.size())).trim();
+    }
 }

@@ -130,7 +130,11 @@ public class CustomMusicPlayer {
         float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
         float minVolume = volumeControl.getMinimum();
         float maxVolume = volumeControl.getMaximum();
-        float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (maxVolume - minVolume));
+
+        float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+        float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
+
+        float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
 
         new Thread(() -> {
             try {
@@ -160,13 +164,17 @@ public class CustomMusicPlayer {
         if (musicClip != null) {
             try {
                 isFading = true;
-                FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
                 Minecraft mc = Minecraft.getMinecraft();
+                FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
                 float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
                 float minVolume = volumeControl.getMinimum();
                 float maxVolume = volumeControl.getMaximum();
-                float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (maxVolume - minVolume));
+
+                float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+                float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
+
+                float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
 
                 volumeControl.setValue(minVolume);
 
@@ -251,7 +259,11 @@ public class CustomMusicPlayer {
                 FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
                 float min = volumeControl.getMinimum();
                 float max = volumeControl.getMaximum();
-                float newVolume = (float) (min + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (max - min));
+
+                float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+                float adjustedMaxVolume = min + (volumeReductionFactor * (max - min));
+
+                float newVolume = (float) (min + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - min));
                 volumeControl.setValue(newVolume);
             }
         } catch (IllegalArgumentException | NullPointerException e) {
@@ -273,8 +285,11 @@ public class CustomMusicPlayer {
             float minVolume = volumeControl.getMinimum(); // Usually -80 dB
             float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
 
+            float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+            float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
+
             // Calculate the current volume in decibels based on Minecraft's music volume setting
-            float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (maxVolume - minVolume));
+            float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
 
             new Thread(() -> {
                 try {

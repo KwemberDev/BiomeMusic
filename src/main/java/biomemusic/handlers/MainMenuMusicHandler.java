@@ -43,7 +43,6 @@ public class MainMenuMusicHandler {
                 if (mc.currentScreen != null && mc.currentScreen.getClass().getName().contains("lumien.custommainmenu")) {
                     // This is a custom main menu screen
                     stopVanillaMusicMainMenu();
-                    BiomeMusic.LOGGER.info("CUSTOM COMPAT MUSIC LOAD");
                     playMainMenuMusic();
                 }
                 if (isMainMenuScreen(mc) && isMainMenuMusicPlaying) {

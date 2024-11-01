@@ -2,6 +2,7 @@ package biomemusic.handlers;
 
 import biomemusic.BiomeMusic;
 import net.minecraft.world.biome.Biome;
+import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.Config;
 import net.minecraftforge.common.config.ConfigManager;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
@@ -12,6 +13,8 @@ import net.minecraftforge.registries.RegistryManager;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Config(modid = BiomeMusic.MODID)
@@ -27,7 +30,8 @@ public class BiomeMusicConfig {
 	@Config.Comment("Biome Music Mapping")
 	public static Map<String, String> biomeMusicMap = new HashMap<>();
 
-	// List of available music files (now using a String array)
+	@Config.Comment("Biome Tag Music Mapping")
+	public static Map<String, String> biomeTagMusicMap = new HashMap<>();
 
 	@Config.Comment("Fade Options")
 	@Config.Name("Fade Options")
@@ -48,6 +52,7 @@ public class BiomeMusicConfig {
 			if (event.getModID().equals(BiomeMusic.MODID)) {
 				ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
 				updateBiomeList();  // Call this method to update the biome list in the config
+				updateBiomeTagList();
 				updateMusicList();  // Call this method to update the music list in the config
 			}
 		}
@@ -65,6 +70,24 @@ public class BiomeMusicConfig {
 		}
 
 		// Save any changes to the config (new biomes added)
+		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
+	}
+
+	public static void updateBiomeTagList() {
+		IForgeRegistry<Biome> biomeRegistry = RegistryManager.ACTIVE.getRegistry(Biome.class);
+
+		// Collect all unique tags across registered biomes
+		Set<String> allTags = biomeRegistry.getValues().stream()
+				.flatMap(biome -> BiomeDictionary.getTypes(biome).stream())
+				.map(type -> type.getName().toLowerCase())
+				.collect(Collectors.toSet());
+
+		// Add each unique tag to the biomeTagMusicMap with a default value, if not already present
+		for (String tag : allTags) {
+			biomeTagMusicMap.putIfAbsent(tag, "default_music");
+		}
+
+		// Save any changes to the config (new tags added)
 		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
 	}
 
