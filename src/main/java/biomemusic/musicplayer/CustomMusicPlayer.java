@@ -29,26 +29,27 @@ public class CustomMusicPlayer {
 
     @SideOnly(Side.CLIENT)
     public static void playCustomMusic(String filePath) {
-        try {
-            if (musicClip != null && isMusicPlaying) {
-                if (currentMusicFilePath.equals(filePath)) {
-                    return;
-                } else {
-                    fadeOutMusicAndPlayNew(filePath);
-                    return;
-                }
+        if (musicClip != null && isMusicPlaying) {
+            if (!currentMusicFilePath.equals(filePath)) {
+                fadeOutMusicAndPlayNew(filePath);
             }
-            loadAndPlayMusicInChunks(filePath);
-            fadeInMusic(FADE_IN_DURATION_MS);
-        } catch (Exception e) {
-            e.printStackTrace();
+            return;  // Already playing this track, no need to reload
         }
+
+        // Start loading the music in a background thread to prevent game lag
+        new Thread(() -> {
+            try {
+                loadAndPlayMusicInChunks(filePath);  // Run this in a background thread
+                fadeInMusic(FADE_IN_DURATION_MS);    // Start fade-in once loaded
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
-    // Load and play the music file in chunks
     @SideOnly(Side.CLIENT)
     public static void loadAndPlayMusicInChunks(String filePath) throws Exception {
-        stopMusic();
+        stopMusic();  // Stop any currently playing music
 
         File musicFile = new File(filePath);
         AudioInputStream audioStream = AudioSystem.getAudioInputStream(musicFile);
@@ -62,11 +63,13 @@ public class CustomMusicPlayer {
                 baseFormat.getSampleRate(),
                 false
         );
+
         pcmStream = AudioSystem.getAudioInputStream(decodedFormat, audioStream);
 
+        // Use DataLine for audio information and create the Clip instance for playback
         DataLine.Info info = new DataLine.Info(Clip.class, decodedFormat);
         musicClip = (Clip) AudioSystem.getLine(info);
-        musicClip.open(pcmStream);
+        musicClip.open(pcmStream);  // Open in this background thread
 
         musicClip.addLineListener(event -> {
             if (event.getType() == LineEvent.Type.STOP && !isPaused && !isFading) {
@@ -103,12 +106,12 @@ public class CustomMusicPlayer {
         }
     }
 
-    // Play the current chunk in the clip
     private static void playChunk() {
         if (musicClip != null) {
             musicClip.start();
         }
     }
+
 
     @SideOnly(Side.CLIENT)
     private static void fadeOutMusicAndPlayNew(String newFilePath) {
@@ -131,7 +134,7 @@ public class CustomMusicPlayer {
         float minVolume = volumeControl.getMinimum();
         float maxVolume = volumeControl.getMaximum();
 
-        float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+        float volumeReductionFactor = 0.8f;
         float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
         float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));

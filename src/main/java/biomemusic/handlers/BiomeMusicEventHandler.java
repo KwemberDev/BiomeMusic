@@ -28,6 +28,9 @@ import java.util.*;
 import static biomemusic.handlers.BiomeMusicConfig.ambientMode;
 import static biomemusic.handlers.BiomeMusicConfig.fadeOptions;
 import biomemusic.handlers.MainMenuMusicHandler.*;
+
+import javax.sound.sampled.FloatControl;
+
 import static biomemusic.musicplayer.CustomMusicPlayer.*;
 
 @SideOnly(Side.CLIENT)
@@ -172,7 +175,7 @@ public class BiomeMusicEventHandler {
                 // Fade out over 2 seconds (2000ms)
                 new Thread(() -> {
                     try {
-                        float volume = 1.0f; // Start at full volume
+                        float volume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
                         float fadeDuration = (float) fadeOptions.vanillaMusicFadeOutTime; // Fade over 10 seconds
                         float fadeSteps = 100; // How many steps to fade
                         float stepTime = fadeDuration / fadeSteps; // Time between steps

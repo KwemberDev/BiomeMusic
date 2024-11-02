@@ -75,6 +75,12 @@ public class MainMenuMusicHandler {
                     isMainMenuMusicPlaying = false;
                 }
             }
+        } else {
+            if (mainMenuMusicPath.equals("default_music") && isMainMenuMusicPlaying) {
+                CustomMusicPlayer.stopMusic();
+                isMainMenuMusicPlaying = false;
+            }
+
         }
     }
 
@@ -101,11 +107,11 @@ public class MainMenuMusicHandler {
         BiomeMusic.LOGGER.info("Wrong custom menu music. or no music playing");
         // If the wrong music is playing or no music is playing, stop the current music and play the correct one
         CustomMusicPlayer.stopMusic();  // Stop any currently playing music
+        isMainMenuMusicPlaying = true;
         CustomMusicPlayer.loadAndPlayMusicInChunks(filePath);  // Play the correct music
         CustomMusicPlayer.adjustVolume();
         BiomeMusic.LOGGER.info("Tried to load: {}", filePath);
         // Update the state to indicate music is playing and store the current track
-        isMainMenuMusicPlaying = true;
         currentMusicPath = filePath;
     }
 
