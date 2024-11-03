@@ -1,6 +1,7 @@
 package biomemusic.handlers;
 
 import biomemusic.BiomeMusic;
+import biomemusic.combatutils.TargetingUtils;
 import biomemusic.musicplayer.CustomMusicPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
@@ -25,12 +26,12 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static biomemusic.handlers.BiomeMusicConfig.ambientMode;
-import static biomemusic.handlers.BiomeMusicConfig.fadeOptions;
 import biomemusic.handlers.MainMenuMusicHandler.*;
 
 import javax.sound.sampled.FloatControl;
 
+import static biomemusic.handlers.BiomeMusicConfig.*;
+import static biomemusic.handlers.BiomeMusicConfig.CombatOptions.*;
 import static biomemusic.musicplayer.CustomMusicPlayer.*;
 
 @SideOnly(Side.CLIENT)
@@ -42,6 +43,7 @@ public class BiomeMusicEventHandler {
     private static int tickCounter = 0; // Counter for ticks
     private static final Random random = new Random();
     private static String currentlyPlayingTagSong;
+    private static boolean isCombatMusicPlaying = false;
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
@@ -57,11 +59,25 @@ public class BiomeMusicEventHandler {
         }
 
         // every 7 seconds
-        if (tickCounter % fadeOptions.pollingRate == 0) {
+        if (tickCounter % fadeOptions.pollingRate == 0 && event.player != null && event.player.world != null) {
 
-            if (event.player != null && event.player.world != null) {
+            if (enableCombatMusic) {
+                int aggrocount = TargetingUtils.countMobsTargetingPlayer(event.player, combatRadius);
+                if (aggrocount >= combatStartNumber) {
+                    handleCombatMusic(event.player, aggrocount);
+                    return;
+                } else if (isCombatMusicPlaying && aggrocount > combatStopNumber) {
+                    return;
+                }
+            }
+
+            if (isCombatMusicPlaying) {
+                isCombatMusicPlaying = false;
+            }
+
                 if (MainMenuMusicHandler.isMainMenuMusicPlaying) {
                     MainMenuMusicHandler.isMainMenuMusicPlaying = false;
+                    stopMusic();
                 }
                 BlockPos pos = event.player.getPosition();
                 Biome biome = event.player.world.getBiome(pos);
@@ -70,8 +86,37 @@ public class BiomeMusicEventHandler {
 
                 // Call the method to handle biome-specific music
                 handleBiomeMusic(event.player, biome);
-            }
+
                 tickCounter = 0;
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    private static void handleCombatMusic(EntityPlayer player, int count) {
+
+        String musicFile = getRandomSongForCombat();
+        String filePath = BiomeMusic.musicFolder.getPath() + "/" + musicFile;
+
+        if (musicFile != null && !musicFile.equals("default_music")) {
+            if (!isFading && !isMusicPlaying() && !isCombatMusicPlaying) {
+                if (!ambientMode) {
+                    fadeOutVanillaMusic();
+                }
+                BiomeMusic.LOGGER.info("tried to play combat music");
+                isCombatMusicPlaying = true;
+                playCustomMusic(filePath);
+            } else if (!isFading && isMusicPlaying() && !isCombatMusicPlaying) {
+                if (!ambientMode) {
+                    fadeOutVanillaMusic();
+                }
+                stopMusicWithFadeOut();
+                BiomeMusic.LOGGER.info("tried to play combat music after fading out existing music.");
+                isCombatMusicPlaying = true;
+                playCustomMusic(filePath);
+            }
+            if (isCombatMusicPlaying && isMusicPlaying() && !ambientMode) {
+                stopVanillaMusic();
+            }
         }
     }
 
@@ -81,7 +126,6 @@ public class BiomeMusicEventHandler {
         ResourceLocation biomeRegistryName = biome.getRegistryName();
 
         if (biomeRegistryName != null) {
-            BiomeMusic.LOGGER.info("Got to the handleBiomeMusic method. Attempting to get biome config value.");
 
             // Use the registry name (e.g., "minecraft:extreme_hills") as the key
             String musicFile = BiomeMusicConfig.biomeMusicMap.get(biomeRegistryName.toString());
@@ -103,7 +147,6 @@ public class BiomeMusicEventHandler {
                 // if the vanilla music isnt fading, and if the correct custom music is playing. once every 10 seconds fade out vanilla music to prevent it coming back.
                 if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
                     stopVanillaMusic();
-                    BiomeMusic.LOGGER.info("TRIED TO STOP VANILLA MUSIC WHILE CUSTOM IS PLAYING AGAIN");
                 }
             } else {
 
@@ -274,6 +317,14 @@ public class BiomeMusicEventHandler {
         List<String> songs = Arrays.asList(songList.split(","));
 
         // Randomly select one song from the list
+        return songs.get(random.nextInt(songs.size())).trim();
+    }
+
+    public static String getRandomSongForCombat() {
+        String songList = (combatMusicList);
+
+        List<String> songs = Arrays.asList(songList.split(","));
+
         return songs.get(random.nextInt(songs.size())).trim();
     }
 }
