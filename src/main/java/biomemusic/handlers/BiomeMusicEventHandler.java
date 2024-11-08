@@ -38,6 +38,8 @@ import static biomemusic.musicplayer.CustomMusicPlayer.*;
 @Mod.EventBusSubscriber
 public class BiomeMusicEventHandler {
 
+    private static EntityPlayer player;
+
     private static float originalMusicVolume; // To store the original music volume
     private static boolean isVanillaMusicFading = false; // Flag to check if fading
     private static int tickCounter = 0; // Counter for ticks
@@ -48,6 +50,10 @@ public class BiomeMusicEventHandler {
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+
+        if (player == null) {
+            player = event.player;
+        }
 
         tickCounter++;
 
@@ -62,11 +68,11 @@ public class BiomeMusicEventHandler {
         if (tickCounter % fadeOptions.pollingRate == 0 && event.player != null && event.player.world != null) {
 
             if (enableCombatMusic) {
-                int aggrocount = TargetingUtils.countMobsTargetingPlayer(event.player, combatRadius);
-                if (aggrocount >= combatStartNumber) {
+                int aggrocount = TargetingUtils.countMobsTargetingPlayer(player, combatOptions.combatRadius);
+                if (aggrocount >= combatOptions.combatStartNumber) {
                     handleCombatMusic(event.player, aggrocount);
                     return;
-                } else if (isCombatMusicPlaying && aggrocount > combatStopNumber) {
+                } else if (isCombatMusicPlaying && aggrocount > combatOptions.combatStopNumber) {
                     return;
                 }
             }
@@ -102,7 +108,7 @@ public class BiomeMusicEventHandler {
                 if (!ambientMode) {
                     fadeOutVanillaMusic();
                 }
-                BiomeMusic.LOGGER.info("tried to play combat music");
+                BiomeMusic.LOGGER.info("tried to play combat music: {}", musicFile);
                 isCombatMusicPlaying = true;
                 playCustomMusic(filePath);
             } else if (!isFading && isMusicPlaying() && !isCombatMusicPlaying) {
@@ -110,7 +116,7 @@ public class BiomeMusicEventHandler {
                     fadeOutVanillaMusic();
                 }
                 stopMusicWithFadeOut();
-                BiomeMusic.LOGGER.info("tried to play combat music after fading out existing music.");
+                BiomeMusic.LOGGER.info("tried to play combat music after fading out existing music: {}", musicFile);
                 isCombatMusicPlaying = true;
                 playCustomMusic(filePath);
             }
@@ -321,7 +327,7 @@ public class BiomeMusicEventHandler {
     }
 
     public static String getRandomSongForCombat() {
-        String songList = (combatMusicList);
+        String songList = (combatOptions.combatMusicList);
 
         List<String> songs = Arrays.asList(songList.split(","));
 

@@ -46,8 +46,8 @@ public class BiomeMusicConfig {
 	@Config.Comment("Enable or Disable Combat Music.")
 	public static boolean enableCombatMusic = true;
 
-	@Config.Name("Combat Options")
 	@Config.Comment("Combat options to toggle or set.")
+	@Config.Name("Combat Options")
 	public static final CombatOptions combatOptions = new CombatOptions();
 
 
@@ -133,19 +133,19 @@ public class BiomeMusicConfig {
 
 		@Config.Name("Combat Music List")
 		@Config.Comment("Put any music you want to be played during combat encounters in here.")
-		public static String combatMusicList = "default_music";
+		public String combatMusicList = "default_music";
 
 		@Config.Name("Combat Music Range")
 		@Config.Comment("Range radius in which aggro'd mobs are counted for combat music trigger")
-		public static int combatRadius = 15;
+		public int combatRadius = 15;
 
 		@Config.Name("Combat Music Start Number")
 		@Config.Comment("The amount of mobs needed to start the combat music. always put higher than stop amount.")
-		public static int combatStartNumber = 5;
+		public int combatStartNumber = 5;
 
 		@Config.Name("Combat Music Stop Number")
 		@Config.Comment("The amount of mobs that should be left before the combat music stops. always put lower than start number.")
-		public static int combatStopNumber = 2;
+		public int combatStopNumber = 2;
 
 	}
 }

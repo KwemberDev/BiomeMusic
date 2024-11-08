@@ -95,7 +95,7 @@ jar {
 
     // Include all runtime dependencies (like vorbisspi) in the jar
     from {
-//        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 
     // Prevent duplicate files (like META-INF files) that can cause issues
