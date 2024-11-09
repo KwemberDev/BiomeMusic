@@ -45,7 +45,7 @@ public class BiomeMusicEventHandler {
     private static int tickCounter = 0; // Counter for ticks
     private static final Random random = new Random();
     private static String currentlyPlayingTagSong;
-    private static boolean isCombatMusicPlaying = false;
+    public static boolean isCombatMusicPlaying = false;
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)

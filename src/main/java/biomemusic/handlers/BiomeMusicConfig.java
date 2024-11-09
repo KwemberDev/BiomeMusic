@@ -1,6 +1,7 @@
 package biomemusic.handlers;
 
 import biomemusic.BiomeMusic;
+import net.minecraft.util.SoundEvent;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.Config;
@@ -11,9 +12,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -50,6 +49,9 @@ public class BiomeMusicConfig {
 	@Config.Name("Combat Options")
 	public static final CombatOptions combatOptions = new CombatOptions();
 
+	@Config.Comment("all known registered sounds")
+	public static String[] allRegisteredSounds = new String[0];
+
 
 	@Mod.EventBusSubscriber(modid = BiomeMusic.MODID)
 	public static class EventHandler {
@@ -60,9 +62,23 @@ public class BiomeMusicConfig {
 				ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
 				updateBiomeList();  // Call this method to update the biome list in the config
 				updateBiomeTagList();
+				updateSoundEventList();
 				updateMusicList();  // Call this method to update the music list in the config
 			}
 		}
+	}
+
+	public static void updateSoundEventList() {
+		// Access the SoundEvent registry
+		IForgeRegistry<SoundEvent> soundRegistry = RegistryManager.ACTIVE.getRegistry(SoundEvent.class);
+
+		// Collect all sound event names into a list temporarily
+		List<String> soundEventNames = soundRegistry.getValues().stream()
+				.map(soundEvent -> soundEvent.getRegistryName().toString())
+				.collect(Collectors.toList());
+
+		// Convert the list to a String array and store it in the config field
+		allRegisteredSounds = soundEventNames.toArray(new String[0]);
 	}
 
 	public static void updateBiomeList() {
@@ -120,13 +136,17 @@ public class BiomeMusicConfig {
 		@Config.Comment("Vanilla Music Fade-out Time. Default: 10000 | [INT / MS]")
 		public int vanillaMusicFadeOutTime = 10000;
 
-		@Config.Name("Fade-in")
+		@Config.Name("Biome Music Fade-in")
 		@Config.Comment("Custom Music Fade-in Time. Default: 20000 | [INT / MS]")
 		public int customMusicFadeInTime = 20000;
 
-		@Config.Name("Fade-out")
+		@Config.Name("Biome Music Fade-out")
 		@Config.Comment("Custom Music Fade-out Time. Default: 20000 | [INT / MS]")
 		public int customMusicFadeOutTime = 20000;
+
+		@Config.Name("Combat Music Fade-in Time")
+		@Config.Comment("Custom Combat Music Fade-in Time. Default: 10000 | [INT / MS]")
+		public int combatMusicFadeInTime = 10000;
 	}
 
 	public static class CombatOptions {
