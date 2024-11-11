@@ -1,36 +1,42 @@
 package biomemusic.handlers;
 
 import biomemusic.BiomeMusic;
+import biomemusic.combatutils.TargetingUtils;
 import biomemusic.musicplayer.CustomMusicPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.achievement.GuiStats;
-import net.minecraft.client.gui.advancements.GuiAdvancement;
-import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.fml.client.GuiDupesFound;
 import net.minecraftforge.fml.client.GuiModList;
 import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
+import static biomemusic.combatutils.TargetingUtils.countHistory;
 import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuMusicPlaying;
-import static biomemusic.musicplayer.CustomMusicPlayer.adjustVolume;
-import static biomemusic.musicplayer.CustomMusicPlayer.isFading;
 
 @Mod.EventBusSubscriber
 public class PauseEventHandler {
 
+    private boolean hasQueueBeenReset = false;
+
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
+
+        if (mc.world == null && !hasQueueBeenReset) {
+            TargetingUtils.resetQueue();
+            hasQueueBeenReset = true;
+        } else if (mc.world != null) {
+            hasQueueBeenReset = false;
+        }
 
         // Check if the player is in a world or not
         if (mc.world == null && !isMainMenuMusicPlaying) {
             // If no world is loaded (i.e., player is in main menu), stop any playing music
             if (CustomMusicPlayer.isMusicPlaying()) {
                 CustomMusicPlayer.stopMusic();
+
             }
             return;  // Exit early, no need to check further
         }

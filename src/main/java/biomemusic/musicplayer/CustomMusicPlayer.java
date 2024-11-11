@@ -1,6 +1,7 @@
 package biomemusic.musicplayer;
 
 import biomemusic.BiomeMusic;
+import biomemusic.handlers.BiomeMusicConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.SoundCategory;
 import net.minecraftforge.fml.relauncher.Side;
@@ -9,9 +10,12 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import static biomemusic.handlers.BiomeMusicConfig.fadeOptions;
 import static biomemusic.handlers.BiomeMusicEventHandler.isCombatMusicPlaying;
+import static biomemusic.handlers.BiomeMusicEventHandler.isLoading;
 
 
 @SideOnly(Side.CLIENT)
@@ -24,9 +28,9 @@ public class CustomMusicPlayer {
     private static final int FADE_IN_DURATION_MS = fadeOptions.customMusicFadeInTime;
     private static final int FADE_OUT_DURATION_MS = fadeOptions.customMusicFadeOutTime;
     private static final int COMBAT_FADE_IN_DURATION = fadeOptions.combatMusicFadeInTime;
-    private static final long CHUNK_DURATION_MS = 10_000; // 10 seconds in milliseconds
+    private static final long CHUNK_DURATION_MS = 25_000; // 10 seconds in milliseconds
     public static boolean isFading = false;
-    private static String currentMusicFilePath = "";
+    public static String currentMusicFilePath = "";
     private static AudioInputStream pcmStream;
 
     @SideOnly(Side.CLIENT)
@@ -43,8 +47,8 @@ public class CustomMusicPlayer {
             try {
                 if (isCombatMusicPlaying) {
                     loadAndPlayMusicInChunks(filePath);
-                    fadeInCombatMusic(COMBAT_FADE_IN_DURATION);
-                } else {
+                    fadeInMusic(COMBAT_FADE_IN_DURATION);
+                } else if (!isCombatMusicPlaying) {
                     loadAndPlayMusicInChunks(filePath);  // Run this in a background thread
                     fadeInMusic(FADE_IN_DURATION_MS);    // Start fade-in once loaded
                 }
@@ -89,10 +93,10 @@ public class CustomMusicPlayer {
             }
         });
 
-        playChunk();
         isMusicPlaying = true;
-        isPaused = false;
+        playChunk();
         currentMusicFilePath = filePath;
+        isLoading = false;
     }
 
     // Load and play the next chunk
@@ -125,7 +129,11 @@ public class CustomMusicPlayer {
         if (musicClip == null) {
             try {
                 loadAndPlayMusicInChunks(newFilePath);
-                fadeInMusic(FADE_IN_DURATION_MS);
+                if (isCombatMusicPlaying) {
+                    fadeInMusic(COMBAT_FADE_IN_DURATION);
+                } else {
+                    fadeInMusic(FADE_IN_DURATION_MS);
+                }
                 currentMusicFilePath = newFilePath;
             } catch (Exception e) {
                 e.printStackTrace();
@@ -150,6 +158,9 @@ public class CustomMusicPlayer {
             try {
                 int fadeSteps = 100;
                 long fadeInterval = FADE_OUT_DURATION_MS / fadeSteps;
+                if (isCombatMusicPlaying) {
+                    fadeInterval = (FADE_OUT_DURATION_MS / 2) / fadeSteps;
+                }
                 float volumeStep = (currentVolume - minVolume) / fadeSteps;
 
                 for (int i = fadeSteps; i >= 0; i--) {
@@ -159,8 +170,13 @@ public class CustomMusicPlayer {
                 }
 
                 stopMusic();
+
                 loadAndPlayMusicInChunks(newFilePath);
-                fadeInMusic(FADE_IN_DURATION_MS);
+                if (isCombatMusicPlaying) {
+                    fadeInMusic(COMBAT_FADE_IN_DURATION);
+                } else {
+                    fadeInMusic(FADE_IN_DURATION_MS);
+                }
                 currentMusicFilePath = newFilePath;
 
             } catch (Exception e) {
@@ -261,6 +277,18 @@ public class CustomMusicPlayer {
         return currentMusicFilePath.equals(filePath);
     }
 
+    public static boolean isCurrentTrackIncluded(String configSet) {
+        List<String> list = Arrays.asList(configSet.split(","));
+
+        for (String config : list) {
+            String filePath = BiomeMusic.musicFolder.getPath() + "/" + config;
+            if (filePath.equals(currentMusicFilePath)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static void adjustVolume() {
         try {
             if (musicClip != null) {
@@ -324,45 +352,49 @@ public class CustomMusicPlayer {
     }
 
     @SideOnly(Side.CLIENT)
-    private static void fadeInCombatMusic(int durationMs) {
-        if (musicClip != null) {
+    public static void stopAllMusic() {
+        if (musicClip != null && musicClip.isRunning()) {
+            musicClip.stop();
+            musicClip.close();
+        }
+        isMusicPlaying = false;
+        isPaused = false;
+        pausePosition = 0;
+        currentMusicFilePath = "";
+        isFading = false;
+
+        if (pcmStream != null) {
             try {
-                isFading = true;
-
-                Minecraft mc = Minecraft.getMinecraft();
-                FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
-                float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
-                float minVolume = volumeControl.getMinimum();
-                float maxVolume = volumeControl.getMaximum();
-
-                float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
-                float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
-
-                float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
-
-                volumeControl.setValue(minVolume);
-
-                int fadeSteps = 100;
-                long fadeInterval = durationMs / fadeSteps;
-                float volumeStep = (targetVolume - minVolume) / fadeSteps;
-
-                new Thread(() -> {
-                    try {
-                        for (int i = 0; i <= fadeSteps; i++) {
-                            float currentVolume = minVolume + (i * volumeStep);
-                            volumeControl.setValue(currentVolume);
-                            Thread.sleep(fadeInterval);
-                        }
-                        volumeControl.setValue(targetVolume);
-                        isFading = false;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }).start();
-            } catch (IllegalArgumentException e) {
+                pcmStream.close();
+            } catch (IOException e) {
                 e.printStackTrace();
+            } finally {
+                pcmStream = null;
             }
         }
     }
 
+    // Method to check and close any extra open lines if more than one is active
+    private static void checkAndCloseExtraLines() {
+        Mixer.Info[] mixers = AudioSystem.getMixerInfo();
+        int openLineCount = 0;
+
+        for (Mixer.Info mixerInfo : mixers) {
+            Mixer mixer = AudioSystem.getMixer(mixerInfo);
+            Line[] lines = mixer.getTargetLines();
+
+            for (Line line : lines) {
+                if (line instanceof Clip && line.isOpen()) {
+                    openLineCount++;
+                    if (openLineCount > 1) {
+                        line.close(); // Close extra open lines beyond the first
+                    }
+                }
+            }
+        }
+
+        if (openLineCount > 1) {
+            stopAllMusic();  // Full reset if multiple lines were found
+        }
+    }
 }

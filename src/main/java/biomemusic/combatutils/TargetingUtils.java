@@ -1,17 +1,14 @@
 package biomemusic.combatutils;
 
 import biomemusic.BiomeMusic;
-import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IEntityOwnable;
-import net.minecraft.entity.monster.*;
-import net.minecraft.entity.passive.EntityCow;
+import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.passive.IAnimals;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -19,15 +16,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 
-import java.util.LinkedList;
-import java.util.Queue;
-
 @SideOnly(Side.CLIENT)
 public class TargetingUtils {
 
     // Define the size of the rolling average window
     private static final int SMOOTHING_WINDOW = 5;
-    private static final Queue<Integer> countHistory = new LinkedList<>();
+    public static final Queue<Integer> countHistory = new LinkedList<>();
 
     /**
      * Counts the number of hostile mobs targeting the specified player within a given radius,
@@ -51,7 +45,7 @@ public class TargetingUtils {
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchArea);
 
         int targetingCount = 0;
-        //TODO FIX THIS SHIT, IT KEEPS PUTTING 0 IN AND NOT RECOGNIZING THE MOBS OR SOME SHIT
+        //TODO probably make more robust/reliable detection system, but to be determined.
         for (EntityLivingBase entity : entities) {
             // Check if the entity is a hostile mob (implements IMob) and is an instance of EntityLiving.
             if ((entity instanceof IAnimals || entity instanceof IEntityOwnable) && entity instanceof EntityLiving) {
@@ -76,5 +70,12 @@ public class TargetingUtils {
         BiomeMusic.LOGGER.info("CURRENT AGGRO MOB COUNT (Smoothed): {}", smoothedCount);
         entities.clear();
         return smoothedCount;
+    }
+
+    public static void resetQueue() {
+        countHistory.clear();
+        for (int i = 0; i < SMOOTHING_WINDOW; i++) {
+            countHistory.add(0);
+        }
     }
 }

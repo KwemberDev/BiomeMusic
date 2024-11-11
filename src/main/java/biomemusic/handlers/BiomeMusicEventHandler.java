@@ -14,7 +14,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeRiver;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
@@ -26,12 +25,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import biomemusic.handlers.MainMenuMusicHandler.*;
-
-import javax.sound.sampled.FloatControl;
-
 import static biomemusic.handlers.BiomeMusicConfig.*;
-import static biomemusic.handlers.BiomeMusicConfig.CombatOptions.*;
 import static biomemusic.musicplayer.CustomMusicPlayer.*;
 
 @SideOnly(Side.CLIENT)
@@ -46,6 +40,8 @@ public class BiomeMusicEventHandler {
     private static final Random random = new Random();
     private static String currentlyPlayingTagSong;
     public static boolean isCombatMusicPlaying = false;
+    public static boolean isLoading = false;
+
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
@@ -77,19 +73,17 @@ public class BiomeMusicEventHandler {
                 }
             }
 
-            if (isCombatMusicPlaying) {
                 isCombatMusicPlaying = false;
-            }
 
                 if (MainMenuMusicHandler.isMainMenuMusicPlaying) {
                     MainMenuMusicHandler.isMainMenuMusicPlaying = false;
                     stopMusic();
+
                 }
                 BlockPos pos = event.player.getPosition();
                 Biome biome = event.player.world.getBiome(pos);
                 String biomeName = biome.getBiomeName();
                 BiomeMusic.LOGGER.info("Current biome: {}", biomeName);
-
                 // Call the method to handle biome-specific music
                 handleBiomeMusic(event.player, biome);
 
@@ -115,7 +109,6 @@ public class BiomeMusicEventHandler {
                 if (!ambientMode) {
                     fadeOutVanillaMusic();
                 }
-                stopMusicWithFadeOut();
                 BiomeMusic.LOGGER.info("tried to play combat music after fading out existing music: {}", musicFile);
                 isCombatMusicPlaying = true;
                 playCustomMusic(filePath);
@@ -134,21 +127,22 @@ public class BiomeMusicEventHandler {
         if (biomeRegistryName != null) {
 
             // Use the registry name (e.g., "minecraft:extreme_hills") as the key
-            String musicFile = BiomeMusicConfig.biomeMusicMap.get(biomeRegistryName.toString());
+            String configSet = BiomeMusicConfig.biomeMusicMap.get(biomeRegistryName.toString());
+            String musicFile = getRandomSongForBiome(configSet);
 
             if (musicFile != null && !musicFile.equals("default_music") && biome != Biomes.RIVER) {
                 // Construct the path to the .ogg file in the biomemusic folder
                 String filePath = BiomeMusic.musicFolder.getPath() + "/" + musicFile;
                 // Check if the current music playing is the same as the one for this biome
-                if ((!CustomMusicPlayer.isMusicPlaying() || !CustomMusicPlayer.isCurrentTrack(filePath)) && !isFading) {
+                if ((!CustomMusicPlayer.isMusicPlaying() || !CustomMusicPlayer.isCurrentTrackIncluded(configSet)) && !isFading && !isLoading) {
                     // If not playing or the wrong track is playing, stop and start the new one
+                    isLoading = true;
 
                     if (!isVanillaMusicFading && !ambientMode) {
                         fadeOutVanillaMusic();
                     }
                     BiomeMusic.LOGGER.error("PLAYED NEW CUSTOM MUSIC.");
                     CustomMusicPlayer.playCustomMusic(filePath);
-                    BiomeMusic.LOGGER.info("Tried to set up custom music for {}", biomeRegistryName);
                 }
                 // if the vanilla music isnt fading, and if the correct custom music is playing. once every 10 seconds fade out vanilla music to prevent it coming back.
                 if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
@@ -174,8 +168,6 @@ public class BiomeMusicEventHandler {
                             possibleSongs.addAll(Arrays.asList(songList));
                         }
 
-                        BiomeMusic.LOGGER.info("CURRENT LIST: {}", possibleSongs);
-
                         if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentlyPlayingTagSong) && !isFading)) {
                             String filePath = BiomeMusic.musicFolder.getPath() + "/" + randomTagMusicFile;
                             if (!isVanillaMusicFading && !ambientMode) {
@@ -187,14 +179,12 @@ public class BiomeMusicEventHandler {
                         }
                         if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
                             stopVanillaMusic();
-                            BiomeMusic.LOGGER.info("TRIED TO STOP VANILLA MUSIC WHILE CUSTOM IS PLAYING AGAIN");
                         }
                     } else {
                         // Play vanilla music (or stop custom music if needed)
                         if (CustomMusicPlayer.isMusicPlaying() && !isFading && !isVanillaMusicFading) {
                             CustomMusicPlayer.stopMusicWithFadeOut();
                             currentlyPlayingTagSong = null;
-                            BiomeMusic.LOGGER.info("No custom music found for biome: {}. Playing vanilla music.", biomeRegistryName);
                         }
                     }
                 }
@@ -240,7 +230,6 @@ public class BiomeMusicEventHandler {
                         // Stop the music once faded out
                         mc.getSoundHandler().stopSound(currentMusic);
                         isVanillaMusicFading = false; // Reset fading flag
-                        BiomeMusic.LOGGER.info("Vanilla music faded out and stopped.");
 
                         // Restore music volume after stopping
                         restoreMusicVolume();
@@ -283,7 +272,6 @@ public class BiomeMusicEventHandler {
     private static void restoreMusicVolume() {
         Minecraft mc = Minecraft.getMinecraft();
         setMusicVolume(SoundCategory.MUSIC, originalMusicVolume);
-        BiomeMusic.LOGGER.info("Vanilla music volume restored to: {}", originalMusicVolume);
     }
 
     @SideOnly(Side.CLIENT)
@@ -332,5 +320,10 @@ public class BiomeMusicEventHandler {
         List<String> songs = Arrays.asList(songList.split(","));
 
         return songs.get(random.nextInt(songs.size())).trim();
+    }
+
+    public static String getRandomSongForBiome(String musiclist) {
+        List<String> list = Arrays.asList(musiclist.split(","));
+        return list.get(random.nextInt(list.size())).trim();
     }
 }
