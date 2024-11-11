@@ -66,14 +66,16 @@ public class BiomeMusicEventHandler {
             if (enableCombatMusic) {
                 int aggrocount = TargetingUtils.countMobsTargetingPlayer(player, combatOptions.combatRadius);
                 if (aggrocount >= combatOptions.combatStartNumber) {
-                    handleCombatMusic(event.player, aggrocount);
+                    handleCombatMusic();
                     return;
                 } else if (isCombatMusicPlaying && aggrocount > combatOptions.combatStopNumber) {
                     return;
                 }
             }
-
-                isCombatMusicPlaying = false;
+                if (isCombatMusicPlaying) {
+                    isCombatMusicPlaying = false;
+                    switchToBiomeMusic();
+                }
 
                 if (MainMenuMusicHandler.isMainMenuMusicPlaying) {
                     MainMenuMusicHandler.isMainMenuMusicPlaying = false;
@@ -92,31 +94,13 @@ public class BiomeMusicEventHandler {
     }
 
     @SideOnly(Side.CLIENT)
-    private static void handleCombatMusic(EntityPlayer player, int count) {
+    private static void handleCombatMusic() {
 
-        String musicFile = getRandomSongForCombat();
-        String filePath = BiomeMusic.musicFolder.getPath() + "/" + musicFile;
-
-        if (musicFile != null && !musicFile.equals("default_music")) {
-            if (!isFading && !isMusicPlaying() && !isCombatMusicPlaying) {
-                if (!ambientMode) {
-                    fadeOutVanillaMusic();
-                }
-                BiomeMusic.LOGGER.info("tried to play combat music: {}", musicFile);
-                isCombatMusicPlaying = true;
-                playCustomMusic(filePath);
-            } else if (!isFading && isMusicPlaying() && !isCombatMusicPlaying) {
-                if (!ambientMode) {
-                    fadeOutVanillaMusic();
-                }
-                BiomeMusic.LOGGER.info("tried to play combat music after fading out existing music: {}", musicFile);
-                isCombatMusicPlaying = true;
-                playCustomMusic(filePath);
-            }
-            if (isCombatMusicPlaying && isMusicPlaying() && !ambientMode) {
-                stopVanillaMusic();
-            }
+        if (!isCombatMusicPlaying && isMusicPlaying() && isBackgroundCombatMusicPlaying) {
+            isCombatMusicPlaying = true;
+            switchToCombatMusic();
         }
+
     }
 
     @SideOnly(Side.CLIENT)
@@ -130,9 +114,8 @@ public class BiomeMusicEventHandler {
             String configSet = BiomeMusicConfig.biomeMusicMap.get(biomeRegistryName.toString());
             String musicFile = getRandomSongForBiome(configSet);
 
-            if (musicFile != null && !musicFile.equals("default_music") && biome != Biomes.RIVER) {
+            if (musicFile != null && !configSet.equals("default_music") && biome != Biomes.RIVER) {
                 // Construct the path to the .ogg file in the biomemusic folder
-                String filePath = BiomeMusic.musicFolder.getPath() + "/" + musicFile;
                 // Check if the current music playing is the same as the one for this biome
                 if ((!CustomMusicPlayer.isMusicPlaying() || !CustomMusicPlayer.isCurrentTrackIncluded(configSet)) && !isFading && !isLoading) {
                     // If not playing or the wrong track is playing, stop and start the new one
@@ -142,7 +125,7 @@ public class BiomeMusicEventHandler {
                         fadeOutVanillaMusic();
                     }
                     BiomeMusic.LOGGER.error("PLAYED NEW CUSTOM MUSIC.");
-                    CustomMusicPlayer.playCustomMusic(filePath);
+                    CustomMusicPlayer.playCustomMusic(musicFile);
                 }
                 // if the vanilla music isnt fading, and if the correct custom music is playing. once every 10 seconds fade out vanilla music to prevent it coming back.
                 if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
@@ -169,11 +152,10 @@ public class BiomeMusicEventHandler {
                         }
 
                         if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentlyPlayingTagSong) && !isFading)) {
-                            String filePath = BiomeMusic.musicFolder.getPath() + "/" + randomTagMusicFile;
                             if (!isVanillaMusicFading && !ambientMode) {
                                 fadeOutVanillaMusic();
                             }
-                            playCustomMusic(filePath);
+                            playCustomMusic(randomTagMusicFile);
                             currentlyPlayingTagSong = randomTagMusicFile;
                             BiomeMusic.LOGGER.info("PLAYING CUSTOM MUSIC FROM TAGS.");
                         }

@@ -23,7 +23,7 @@ import java.lang.reflect.Field;
 public class MainMenuMusicHandler {
 
     public static boolean isMainMenuMusicPlaying = false;
-    public static String currentMusicPath = ""; // Track the currently playing music file
+    public static String currentMusic = ""; // Track the currently playing music file
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) throws Exception {
@@ -95,10 +95,9 @@ public class MainMenuMusicHandler {
     // Play custom music defined in the config
     private static void playMainMenuMusic() throws Exception {
         String mainMenuMusicPath = BiomeMusicConfig.mainMenuMusic;  // Get the configured music file path
-        String filePath = BiomeMusic.musicFolder.getPath() + "/" + mainMenuMusicPath;
 
         // Check if the correct music is already playing
-        if (isMainMenuMusicPlaying && currentMusicPath.equals(filePath)) {
+        if (isMainMenuMusicPlaying && currentMusic.equals(mainMenuMusicPath)) {
             // The correct music is already playing, no need to change
             return;
         }
@@ -108,11 +107,11 @@ public class MainMenuMusicHandler {
         CustomMusicPlayer.stopMusic();  // Stop any currently playing music
 
         isMainMenuMusicPlaying = true;
-        CustomMusicPlayer.loadAndPlayMusicInChunks(filePath);  // Play the correct music
+        CustomMusicPlayer.loadAndPlayMusicInChunks(mainMenuMusicPath);  // Play the correct music
         CustomMusicPlayer.adjustVolume();
-        BiomeMusic.LOGGER.info("Tried to load: {}", filePath);
+        BiomeMusic.LOGGER.info("Tried to load: {}", mainMenuMusicPath);
         // Update the state to indicate music is playing and store the current track
-        currentMusicPath = filePath;
+        currentMusic = mainMenuMusicPath;
     }
 
     @SideOnly(Side.CLIENT)

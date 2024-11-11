@@ -55,6 +55,9 @@ public class BiomeMusicConfig {
 	@Config.Comment("all known registered sounds")
 	public static String[] allRegisteredSounds = new String[0];
 
+	@Config.Comment("Link normal music to battle music here!")
+	public static Map<String, String> musicLink = new HashMap<>();
+
 
 	@Mod.EventBusSubscriber(modid = BiomeMusic.MODID)
 	public static class EventHandler {
@@ -124,6 +127,10 @@ public class BiomeMusicConfig {
 
 		// Update the config with the recognized music files
 		availableMusicFiles = musicFiles;
+
+		for (String music : musicFiles) {
+			musicLink.putIfAbsent(music, "");
+		}
 
 		// Sync the config after updating the music list
 		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
