@@ -21,15 +21,15 @@ import static biomemusic.handlers.BiomeMusicEventHandler.*;
 @SideOnly(Side.CLIENT)
 public class CustomMusicPlayer {
 
-    private static Clip musicClip;
-    private static Clip combatMusicClip;
+    public static Clip musicClip;
+    public static Clip combatMusicClip;
     private static boolean isMusicPlaying = false;
     private static boolean isPaused = false;
     private static long pausePosition = 0;
     private static long combatPausePosition = 0;
     private static final int FADE_IN_DURATION_MS = fadeOptions.customMusicFadeInTime;
     private static final int FADE_OUT_DURATION_MS = fadeOptions.customMusicFadeOutTime;
-    private static final int COMBAT_FADE_IN_DURATION = fadeOptions.combatMusicFadeInTime;
+    public static final int COMBAT_FADE_IN_DURATION = fadeOptions.combatMusicFadeInTime;
     private static final long CHUNK_DURATION_MS = 10_000; // 10 seconds in milliseconds
     public static boolean isFading = false;
     private static AudioInputStream pcmStream;
@@ -121,7 +121,7 @@ public class CustomMusicPlayer {
         }
 
         String linkedMusic = musicLink.get(music);
-        if (Objects.equals(linkedMusic, "")) {
+        if (Objects.equals(linkedMusic, "") || Objects.equals(linkedMusic, null)) {
             linkedMusic = getRandomSongForCombat();
         }
 
@@ -316,6 +316,7 @@ public class CustomMusicPlayer {
             currentFile = "";
             isFading = false;
             isBackgroundCombatMusicPlaying = false;
+            isCombatMusicPlaying = false;
         }
         if (pcmStream != null) {
             try {
@@ -338,15 +339,37 @@ public class CustomMusicPlayer {
     }
 
     @SideOnly(Side.CLIENT)
+    public static void stopCombatMusic() {
+        isCombatMusicPlaying = false;
+        if (combatMusicClip != null && combatMusicClip.isRunning()) {
+            combatMusicClip.stop();
+            combatMusicClip.close();
+        }
+        if (combatpcmStream != null) {
+            try {
+                combatpcmStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
     public static void pauseMusic() {
         if (musicClip != null && musicClip.isRunning()) {
             isPaused = true;
             pausePosition = musicClip.getMicrosecondPosition();
             musicClip.stop();
-            if (combatMusicClip != null && combatMusicClip.isRunning()) {
-                combatPausePosition = combatMusicClip.getMicrosecondPosition();
-                combatMusicClip.stop();
-            }
+            pauseCombatMusic();
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void pauseCombatMusic() {
+        if (combatMusicClip != null && combatMusicClip.isRunning()) {
+            isPaused = true;
+            combatPausePosition = combatMusicClip.getMicrosecondPosition();
+            combatMusicClip.stop();
         }
     }
 
@@ -359,6 +382,10 @@ public class CustomMusicPlayer {
                 combatMusicClip.setMicrosecondPosition(combatPausePosition);
                 combatMusicClip.start();
             }
+            isPaused = false;
+        } else if (combatMusicClip != null && isPaused) {
+            combatMusicClip.setMicrosecondPosition(combatPausePosition);
+            combatMusicClip.start();
             isPaused = false;
         }
     }
@@ -388,7 +415,10 @@ public class CustomMusicPlayer {
                 Minecraft mc = Minecraft.getMinecraft();
                 float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
                 FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
-                FloatControl combatVolumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
+                FloatControl combatVolumeControl = null;
+                if (isBackgroundCombatMusicPlaying) {
+                    combatVolumeControl = (FloatControl) combatMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
+                }
                 float min = volumeControl.getMinimum();
                 float max = volumeControl.getMaximum();
 
@@ -396,8 +426,12 @@ public class CustomMusicPlayer {
                 float adjustedMaxVolume = min + (volumeReductionFactor * (max - min));
 
                 float newVolume = (float) (min + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - min));
-                volumeControl.setValue(newVolume);
-                combatVolumeControl.setValue(newVolume);
+                if (!isCombatMusicPlaying) {
+                    volumeControl.setValue(newVolume);
+                }
+                if (isBackgroundCombatMusicPlaying && !isMusicPlaying) {
+                    combatVolumeControl.setValue(newVolume);
+                }
             }
         } catch (IllegalArgumentException | NullPointerException e) {
             e.printStackTrace();
@@ -539,7 +573,7 @@ public class CustomMusicPlayer {
         }).start();
 
         int fadeSteps = 100;
-        long fadeInterval = (long) ((COMBAT_FADE_IN_DURATION * 1.2) / fadeSteps);
+        long fadeInterval = (long) ((COMBAT_FADE_IN_DURATION) / fadeSteps);
         float volumeStep = (currentVolume - minVolume) / fadeSteps;
 
         new Thread(() -> {
@@ -556,4 +590,90 @@ public class CustomMusicPlayer {
             }
         }).start();
     }
+
+    @SideOnly(Side.CLIENT)
+    public static void stopCombatMusicWithFadeOut() {
+        if (combatMusicClip != null && combatMusicClip.isRunning()) {
+            isFading = true;
+            FloatControl volumeControl = (FloatControl) combatMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
+
+            // Get the current volume based on Minecraft's sound settings
+            Minecraft mc = Minecraft.getMinecraft();
+            float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
+
+            // Get the minimum and maximum possible volume
+            float minVolume = volumeControl.getMinimum(); // Usually -80 dB
+            float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
+
+            float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+            float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
+
+            // Calculate the current volume in decibels based on Minecraft's music volume setting
+            float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
+
+            new Thread(() -> {
+                try {
+                    int fadeSteps = 100;
+                    long fadeInterval = COMBAT_FADE_IN_DURATION / fadeSteps;
+                    float volumeStep = (currentVolume - minVolume) / fadeSteps;
+
+                    // Gradually decrease the volume from the current volume to the minimum volume
+                    for (int i = fadeSteps; i >= 0; i--) {
+                        float newVolume = minVolume + (i * volumeStep);
+                        volumeControl.setValue(newVolume);
+                        Thread.sleep(fadeInterval);
+                    }
+
+                    stopMusic(); // Stop the music after fading out
+                    isFading = false;
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void fadeInCombatMusic() {
+        if (combatMusicClip != null) {
+            try {
+                isFading = true;
+
+                Minecraft mc = Minecraft.getMinecraft();
+                FloatControl volumeControl = (FloatControl) combatMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
+                float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
+                float minVolume = volumeControl.getMinimum();
+                float maxVolume = volumeControl.getMaximum();
+
+                float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+                float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
+
+                float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
+
+                volumeControl.setValue(minVolume);
+
+                int fadeSteps = 100;
+                long fadeInterval = COMBAT_FADE_IN_DURATION / fadeSteps;
+                float volumeStep = (targetVolume - minVolume) / fadeSteps;
+
+                new Thread(() -> {
+                    try {
+                        for (int i = 0; i <= fadeSteps; i++) {
+                            float currentVolume = minVolume + (i * volumeStep);
+                            volumeControl.setValue(currentVolume);
+                            Thread.sleep(fadeInterval);
+                        }
+                        volumeControl.setValue(targetVolume);
+                        isFading = false;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 }

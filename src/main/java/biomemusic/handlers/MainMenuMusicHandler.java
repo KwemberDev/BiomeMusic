@@ -19,6 +19,9 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.lang.reflect.Field;
 
+import static biomemusic.handlers.BiomeMusicEventHandler.isCombatMusicPlaying;
+import static biomemusic.musicplayer.CustomMusicPlayer.*;
+
 @Mod.EventBusSubscriber
 public class MainMenuMusicHandler {
 
@@ -37,6 +40,9 @@ public class MainMenuMusicHandler {
 
             if (Loader.isModLoaded("custommainmenu")) {
                 if (mc.currentScreen != null && mc.currentScreen.getClass().getName().contains("lumien.custommainmenu")) {
+                    if (combatMusicClip != null && combatMusicClip.isRunning()) {
+                        stopCombatMusic();
+                    }
                     // This is a custom main menu screen
                     stopVanillaMusicMainMenu();
                     playMainMenuMusic();
@@ -55,6 +61,9 @@ public class MainMenuMusicHandler {
 
             // Check if the current screen is one of the main menus
             if (isMainMenuScreen(mc) && !Loader.isModLoaded("lumien.custommainmenu")) {
+                if (combatMusicClip != null && combatMusicClip.isRunning()) {
+                    stopCombatMusic();
+                }
                 // Stop any vanilla music and attempt to play the custom music
                 stopVanillaMusicMainMenu();
 
@@ -85,7 +94,7 @@ public class MainMenuMusicHandler {
 
 
     // Check if the current screen is one where you want to stop the vanilla music and play custom music
-    private static boolean isMainMenuScreen(Minecraft mc) {
+    public static boolean isMainMenuScreen(Minecraft mc) {
         return mc.currentScreen instanceof GuiMainMenu
                 || mc.currentScreen instanceof GuiWorldSelection
                 || mc.currentScreen instanceof GuiCreateWorld
@@ -108,6 +117,8 @@ public class MainMenuMusicHandler {
 
         isMainMenuMusicPlaying = true;
         CustomMusicPlayer.loadAndPlayMusicInChunks(mainMenuMusicPath);  // Play the correct music
+        //TODO figure out why if i quit to main menu while combat music is playing, the main menu music aint playin
+        isCombatMusicPlaying = false;
         CustomMusicPlayer.adjustVolume();
         BiomeMusic.LOGGER.info("Tried to load: {}", mainMenuMusicPath);
         // Update the state to indicate music is playing and store the current track

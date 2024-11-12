@@ -14,6 +14,8 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 
 import static biomemusic.combatutils.TargetingUtils.countHistory;
 import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuMusicPlaying;
+import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuScreen;
+import static biomemusic.musicplayer.CustomMusicPlayer.*;
 
 @Mod.EventBusSubscriber
 public class PauseEventHandler {
@@ -47,10 +49,14 @@ public class PauseEventHandler {
             if (CustomMusicPlayer.isMusicPlaying() && !CustomMusicPlayer.isPaused()) {
                 CustomMusicPlayer.pauseMusic();
                 BiomeMusic.LOGGER.info("Paused Music");
+            } else if (combatMusicClip.isRunning() && !CustomMusicPlayer.isPaused()) {
+                CustomMusicPlayer.pauseCombatMusic();
+                BiomeMusic.LOGGER.info("Paused Combat Music");
             }
         } else {
             // If no pause-related menu is open, resume the music if it was paused
-            if (CustomMusicPlayer.isPaused()) {
+
+            if (CustomMusicPlayer.isPaused() && !isMainMenuScreen(mc)) {
                 if (!CustomMusicPlayer.isFading) {  // Use the class's field for fading check
                     CustomMusicPlayer.adjustVolume();
                 }

@@ -45,7 +45,13 @@ public class BiomeMusicEventHandler {
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
-    public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
+    public static void onPlayerTick(TickEvent.PlayerTickEvent event) throws Exception {
+
+        if (MainMenuMusicHandler.isMainMenuMusicPlaying) {
+            MainMenuMusicHandler.isMainMenuMusicPlaying = false;
+            stopMusic();
+        }
+
 
         if (player == null) {
             player = event.player;
@@ -69,42 +75,58 @@ public class BiomeMusicEventHandler {
                     handleCombatMusic();
                     return;
                 } else if (isCombatMusicPlaying && aggrocount > combatOptions.combatStopNumber) {
+                    if (!isVanillaMusicFading) {
+                        stopVanillaMusic();
+                    }
                     return;
                 }
             }
                 if (isCombatMusicPlaying) {
-                    isCombatMusicPlaying = false;
-                    switchToBiomeMusic();
+                    if (musicClip.isRunning()) {
+                        switchToBiomeMusic();
+                        isCombatMusicPlaying = false;
+                        BiomeMusic.LOGGER.warn("SWITCHED TO BIOME MUSIC.");
+                    } else if (!musicClip.isRunning() && combatMusicClip.isRunning() && !isFading) {
+                        stopCombatMusicWithFadeOut();
+                        isCombatMusicPlaying = false;
+                        BiomeMusic.LOGGER.warn("FADED OUT COMBAT MUSIC.");
+                    }
                 }
 
-                if (MainMenuMusicHandler.isMainMenuMusicPlaying) {
-                    MainMenuMusicHandler.isMainMenuMusicPlaying = false;
-                    stopMusic();
-
-                }
                 BlockPos pos = event.player.getPosition();
                 Biome biome = event.player.world.getBiome(pos);
                 String biomeName = biome.getBiomeName();
                 BiomeMusic.LOGGER.info("Current biome: {}", biomeName);
                 // Call the method to handle biome-specific music
-                handleBiomeMusic(event.player, biome);
+                handleBiomeMusic(biome);
 
                 tickCounter = 0;
         }
     }
 
     @SideOnly(Side.CLIENT)
-    private static void handleCombatMusic() {
+    private static void handleCombatMusic() throws Exception {
 
-        if (!isCombatMusicPlaying && isMusicPlaying() && isBackgroundCombatMusicPlaying) {
+        if (!isCombatMusicPlaying && isMusicPlaying() && isBackgroundCombatMusicPlaying && !isFading) {
             isCombatMusicPlaying = true;
+            fadeOutVanillaMusic();
+            BiomeMusic.LOGGER.warn("SWITCHED TO COMBAT MUSIC.");
             switchToCombatMusic();
+        }
+        if (!isCombatMusicPlaying && !isBackgroundCombatMusicPlaying && !isFading) {
+            isCombatMusicPlaying = true;
+            fadeOutVanillaMusic();
+            loadAndPlayCombatMusicInChunks("randombullshitgo");
+            fadeInCombatMusic();
+        }
+        if (isCombatMusicPlaying && !isBackgroundCombatMusicPlaying && !isVanillaMusicFading) {
+            stopVanillaMusic();
         }
 
     }
 
     @SideOnly(Side.CLIENT)
-    private static void handleBiomeMusic(EntityPlayer player, Biome biome) {
+    private static void handleBiomeMusic(Biome biome) {
         // Get the biome's registry name instead of the human-readable name
         ResourceLocation biomeRegistryName = biome.getRegistryName();
 
