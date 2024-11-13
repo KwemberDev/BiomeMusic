@@ -26,17 +26,20 @@ public class BiomeMusicConfig {
 	@Config.Name("Main Menu Music")
 	public static String mainMenuMusic = "default_music";
 
+	@Config.Name("Available Music Files")
 	@Config.Comment("List of recognized .ogg music files. \nWhen setting up custom music, include .ogg extension and make sure to spell the name of the file correctly. \nThe mod will work even if the music you specify is not in this list if the music is in the correct folder, \nas this is just a second verification step to make sure the music file is correctly placed.")
 	public static String[] availableMusicFiles = new String[0]; // Start with an empty array
 
-	@Config.Comment("Biome Music Mapping. List of all recognised biomes and a corresponding input field for the music.")
+	@Config.Name("Biome Music Map")
+	@Config.Comment("Biome Music Mapping. List of all recognised biomes and a corresponding input field for the music. Music specified in here will overwrite the music from biome tags.")
 	public static Map<String, String> biomeMusicMap = new HashMap<>();
 
+	@Config.Name("Biome Tag Music Map")
 	@Config.Comment("Biome Tag Music Mapping. List of all Biome Tags. \nExample: If you want a certain music to play in all biomes with snow, use the snowy tag.")
 	public static Map<String, String> biomeTagMusicMap = new HashMap<>();
 
-	@Config.Comment("Fade Options. These control the music fading. \nDO NOT TOUCH UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING, THIS CAN AND WILL BREAK THE MOD IF GIVEN INCORRECT VALES. DEFAULTS: [20000,20000,140,10000]")
 	@Config.Name("Fade Options")
+	@Config.Comment("Fade Options. These control the music fading. \nDO NOT TOUCH UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING, THIS CAN AND WILL BREAK THE MOD IF GIVEN INCORRECT VALES. DEFAULTS: [20000,20000,140,10000]")
 	public static final FadeOptions fadeOptions = new FadeOptions();
 
 	@Config.Name("Ambient Mode")
@@ -44,19 +47,16 @@ public class BiomeMusicConfig {
 					"\nEnable if you want to use this mod for ambience sound tracks instead of music.")
 	public static boolean ambientMode = false;
 
-	@Config.Name("Combat Music")
-	@Config.Comment("Enable or Disable Combat Music.")
-	public static boolean enableCombatMusic = true;
-
-	@Config.Comment("Combat options to toggle or set.")
 	@Config.Name("Combat Options")
+	@Config.Comment("Combat options to toggle or set.")
 	public static final CombatOptions combatOptions = new CombatOptions();
-
-	@Config.Comment("all known registered sounds")
-	public static String[] allRegisteredSounds = new String[0];
 
 	@Config.Comment("Link normal music to battle music here!")
 	public static Map<String, String> musicLink = new HashMap<>();
+
+	@Config.Name("Cavern Music Options")
+	@Config.Comment("Cavern Music Options.")
+	public static final UndergroundOptions undergroundOptions = new UndergroundOptions();
 
 
 	@Mod.EventBusSubscriber(modid = BiomeMusic.MODID)
@@ -68,23 +68,9 @@ public class BiomeMusicConfig {
 				ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
 				updateBiomeList();  // Call this method to update the biome list in the config
 				updateBiomeTagList();
-				updateSoundEventList();
 				updateMusicList();  // Call this method to update the music list in the config
 			}
 		}
-	}
-
-	public static void updateSoundEventList() {
-		// Access the SoundEvent registry
-		IForgeRegistry<SoundEvent> soundRegistry = RegistryManager.ACTIVE.getRegistry(SoundEvent.class);
-
-		// Collect all sound event names into a list temporarily
-		List<String> soundEventNames = soundRegistry.getValues().stream()
-				.map(soundEvent -> soundEvent.getRegistryName().toString())
-				.collect(Collectors.toList());
-
-		// Convert the list to a String array and store it in the config field
-		allRegisteredSounds = soundEventNames.toArray(new String[0]);
 	}
 
 	public static void updateBiomeList() {
@@ -161,6 +147,10 @@ public class BiomeMusicConfig {
 
 	public static class CombatOptions {
 
+		@Config.Name("Combat Music")
+		@Config.Comment("Enable or Disable Combat Music.")
+		public boolean enableCombatMusic = true;
+
 		@Config.Name("Combat Music List")
 		@Config.Comment("Put any music you want to be played during combat encounters in here.")
 		public String combatMusicList = "default_music";
@@ -178,4 +168,23 @@ public class BiomeMusicConfig {
 		public int combatStopNumber = 2;
 
 	}
+
+	public static class UndergroundOptions {
+		@Config.Name("Enable or Disable Cavern Music")
+		@Config.Comment("Enable for music under a certain Y level. Good for cavern music.")
+		public boolean enableUndergroundMusic = true;
+
+		@Config.Name("Cavern Music Start Level")
+		@Config.Comment("The Y level at which cavern music starts.")
+		public int undergroundMusicYLevelStart = 40;
+
+		@Config.Name("Cavern Music Stop Level")
+		@Config.Comment("The Y Level at which Cavern Music Stops. To prevent frequent switching when at the start level, please set this value higher then the start Y level.")
+		public int undergroundMusicYLevelStop = 50;
+
+		@Config.Name("Cavern Music:")
+		@Config.Comment("The Cavern Music that will play underground.")
+		public String CavernMusic = "default_music";
+	}
+
 }

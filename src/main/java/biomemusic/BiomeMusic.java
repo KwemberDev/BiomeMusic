@@ -18,7 +18,7 @@ import java.io.File;
 @Mod(modid = BiomeMusic.MODID, version = BiomeMusic.VERSION, name = BiomeMusic.NAME)
 public class BiomeMusic {
     public static final String MODID = "biomemusic";
-    public static final String VERSION = "Beta 0.1.0";
+    public static final String VERSION = "Beta 0.1.1";
     public static final String NAME = "BiomeMusic!";
     public static final Logger LOGGER = LogManager.getLogger();
 	
@@ -54,7 +54,6 @@ public class BiomeMusic {
         // Initialize and update the biome list in the config
         BiomeMusicConfig.updateBiomeList();
         BiomeMusicConfig.updateBiomeTagList();
-        BiomeMusicConfig.updateSoundEventList();
         BiomeMusicConfig.updateMusicList();
     }
 }

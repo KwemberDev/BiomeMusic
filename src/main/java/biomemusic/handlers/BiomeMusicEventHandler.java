@@ -38,15 +38,13 @@ public class BiomeMusicEventHandler {
     private static boolean isVanillaMusicFading = false; // Flag to check if fading
     private static int tickCounter = 0; // Counter for ticks
     private static final Random random = new Random();
-    private static String currentlyPlayingTagSong;
     public static boolean isCombatMusicPlaying = false;
     public static boolean isLoading = false;
-
+    public static boolean isCavernMusicPlaying = false;
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) throws Exception {
-
         if (MainMenuMusicHandler.isMainMenuMusicPlaying) {
             MainMenuMusicHandler.isMainMenuMusicPlaying = false;
             stopMusic();
@@ -69,7 +67,7 @@ public class BiomeMusicEventHandler {
         // every 7 seconds
         if (tickCounter % fadeOptions.pollingRate == 0 && event.player != null && event.player.world != null) {
 
-            if (enableCombatMusic) {
+            if (combatOptions.enableCombatMusic) {
                 int aggrocount = TargetingUtils.countMobsTargetingPlayer(player, combatOptions.combatRadius);
                 if (aggrocount >= combatOptions.combatStartNumber) {
                     handleCombatMusic();
@@ -81,26 +79,60 @@ public class BiomeMusicEventHandler {
                     return;
                 }
             }
-                if (isCombatMusicPlaying) {
-                    if (musicClip.isRunning()) {
-                        switchToBiomeMusic();
-                        isCombatMusicPlaying = false;
-                        BiomeMusic.LOGGER.warn("SWITCHED TO BIOME MUSIC.");
-                    } else if (!musicClip.isRunning() && combatMusicClip.isRunning() && !isFading) {
-                        stopCombatMusicWithFadeOut();
-                        isCombatMusicPlaying = false;
-                        BiomeMusic.LOGGER.warn("FADED OUT COMBAT MUSIC.");
-                    }
+
+            if (isCombatMusicPlaying) {
+                if (musicClip.isRunning()) {
+                    switchToBiomeMusic();
+                    isCombatMusicPlaying = false;
+                    BiomeMusic.LOGGER.warn("SWITCHED TO BIOME MUSIC.");
+                } else if (!musicClip.isRunning() && combatMusicClip.isRunning() && !isFading) {
+                    stopCombatMusicWithFadeOut();
+                    isCombatMusicPlaying = false;
+                    BiomeMusic.LOGGER.warn("FADED OUT COMBAT MUSIC.");
                 }
+            }
 
-                BlockPos pos = event.player.getPosition();
-                Biome biome = event.player.world.getBiome(pos);
-                String biomeName = biome.getBiomeName();
-                BiomeMusic.LOGGER.info("Current biome: {}", biomeName);
-                // Call the method to handle biome-specific music
-                handleBiomeMusic(biome);
+            if (undergroundOptions.enableUndergroundMusic) {
+                if (event.player.posY <= undergroundOptions.undergroundMusicYLevelStart) {
+                    handleCavernMusic();
+                    return;
+                } else if (event.player.posY <= undergroundOptions.undergroundMusicYLevelStop && isCavernMusicPlaying) {
+                    if (!isVanillaMusicFading) {
+                        stopVanillaMusic();
+                    }
+                    return;
+                }
+            }
 
-                tickCounter = 0;
+            if (isCavernMusicPlaying) {
+                isCavernMusicPlaying = false;
+            }
+
+            BlockPos pos = event.player.getPosition();
+            Biome biome = event.player.world.getBiome(pos);
+            String biomeName = biome.getBiomeName();
+            BiomeMusic.LOGGER.info("Current biome: {}", biomeName);
+            // Call the method to handle biome-specific music
+            handleBiomeMusic(biome);
+
+            tickCounter = 0;
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    private static void handleCavernMusic() {
+
+        if (!isCavernMusicPlaying && !isFading) {
+            String musicFile = getRandomSongForCavern();
+            if (!musicFile.equals("default_music") && musicFile != null) {
+                isCavernMusicPlaying = true;
+                fadeOutVanillaMusic();
+                BiomeMusic.LOGGER.info("PLAYING CAVERN MUSIC");
+                playCustomMusic(musicFile);
+            }
+        }
+        if (isCavernMusicPlaying && !isVanillaMusicFading) {
+            stopVanillaMusic();
         }
     }
 
@@ -116,7 +148,7 @@ public class BiomeMusicEventHandler {
         if (!isCombatMusicPlaying && !isBackgroundCombatMusicPlaying && !isFading) {
             isCombatMusicPlaying = true;
             fadeOutVanillaMusic();
-            loadAndPlayCombatMusicInChunks("randombullshitgo");
+            loadAndPlayCombatMusicInChunks("", true);
             fadeInCombatMusic();
         }
         if (isCombatMusicPlaying && !isBackgroundCombatMusicPlaying && !isVanillaMusicFading) {
@@ -154,15 +186,16 @@ public class BiomeMusicEventHandler {
                     stopVanillaMusic();
                 }
             } else {
-
+                BiomeMusic.LOGGER.info("got to tags.");
                 Set<BiomeDictionary.Type> biomeTags = BiomeDictionary.getTypes(biome);
-                if (!biomeTags.isEmpty() && biome != Biomes.RIVER) {
+                if (!biomeTags.isEmpty() && biome != Biomes.RIVER && !isLoading) {
                     String randomTagMusicFile = biomeTags.stream()
                             .map(type -> getRandomSongForBiomeTag(type.getName().toLowerCase()))
                             .filter(song -> !song.equals("default_music"))
                             .findFirst()
                             .orElse("default_music");
 
+                    BiomeMusic.LOGGER.info(randomTagMusicFile);
                     if (!randomTagMusicFile.equals("default_music")) {
 
                         Set<String> possibleSongs = new HashSet<>();
@@ -172,13 +205,15 @@ public class BiomeMusicEventHandler {
                             String[] songList = possibleSongList.split(",");
                             possibleSongs.addAll(Arrays.asList(songList));
                         }
-
-                        if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentlyPlayingTagSong) && !isFading)) {
+                        BiomeMusic.LOGGER.info(possibleSongs);
+                        BiomeMusic.LOGGER.info("Fading is: {}", isFading);
+                        if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentFile) && !isFading)) {
+                            isLoading = true;
+                            BiomeMusic.LOGGER.info("set isLoading to TRUE.");
                             if (!isVanillaMusicFading && !ambientMode) {
                                 fadeOutVanillaMusic();
                             }
                             playCustomMusic(randomTagMusicFile);
-                            currentlyPlayingTagSong = randomTagMusicFile;
                             BiomeMusic.LOGGER.info("PLAYING CUSTOM MUSIC FROM TAGS.");
                         }
                         if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
@@ -188,7 +223,6 @@ public class BiomeMusicEventHandler {
                         // Play vanilla music (or stop custom music if needed)
                         if (CustomMusicPlayer.isMusicPlaying() && !isFading && !isVanillaMusicFading) {
                             CustomMusicPlayer.stopMusicWithFadeOut();
-                            currentlyPlayingTagSong = null;
                         }
                     }
                 }
@@ -329,5 +363,13 @@ public class BiomeMusicEventHandler {
     public static String getRandomSongForBiome(String musiclist) {
         List<String> list = Arrays.asList(musiclist.split(","));
         return list.get(random.nextInt(list.size())).trim();
+    }
+
+    public static String getRandomSongForCavern() {
+        String songList = (undergroundOptions.CavernMusic);
+
+        List<String> songs = Arrays.asList(songList.split(","));
+
+        return songs.get(random.nextInt(songs.size())).trim();
     }
 }

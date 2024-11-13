@@ -117,7 +117,6 @@ public class MainMenuMusicHandler {
 
         isMainMenuMusicPlaying = true;
         CustomMusicPlayer.loadAndPlayMusicInChunks(mainMenuMusicPath);  // Play the correct music
-        //TODO figure out why if i quit to main menu while combat music is playing, the main menu music aint playin
         isCombatMusicPlaying = false;
         CustomMusicPlayer.adjustVolume();
         BiomeMusic.LOGGER.info("Tried to load: {}", mainMenuMusicPath);

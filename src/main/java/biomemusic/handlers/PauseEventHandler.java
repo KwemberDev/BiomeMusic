@@ -49,9 +49,11 @@ public class PauseEventHandler {
             if (CustomMusicPlayer.isMusicPlaying() && !CustomMusicPlayer.isPaused()) {
                 CustomMusicPlayer.pauseMusic();
                 BiomeMusic.LOGGER.info("Paused Music");
-            } else if (combatMusicClip.isRunning() && !CustomMusicPlayer.isPaused()) {
-                CustomMusicPlayer.pauseCombatMusic();
-                BiomeMusic.LOGGER.info("Paused Combat Music");
+            } else if (combatMusicClip != null) {
+                if (combatMusicClip.isRunning() && !CustomMusicPlayer.isPaused()) {
+                    CustomMusicPlayer.pauseCombatMusic();
+                    BiomeMusic.LOGGER.info("Paused Combat Music");
+                }
             }
         } else {
             // If no pause-related menu is open, resume the music if it was paused
@@ -61,6 +63,8 @@ public class PauseEventHandler {
                     CustomMusicPlayer.adjustVolume();
                 }
                 CustomMusicPlayer.resumeMusic();
+            } else if (CustomMusicPlayer.isPaused() && isMainMenuScreen(mc)) {
+                resumeMusic();
             }
         }
     }

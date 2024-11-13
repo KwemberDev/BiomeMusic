@@ -45,7 +45,6 @@ public class TargetingUtils {
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchArea);
 
         int targetingCount = 0;
-        //TODO probably make more robust/reliable detection system, but to be determined.
         for (EntityLivingBase entity : entities) {
             // Check if the entity is a hostile mob (implements IMob) and is an instance of EntityLiving.
             if ((entity instanceof IAnimals || entity instanceof IEntityOwnable) && entity instanceof EntityLiving) {

@@ -59,9 +59,8 @@ public class CustomMusicPlayer {
     @SideOnly(Side.CLIENT)
     public static void loadAndPlay(String music) throws Exception {
         loadAndPlayMusicInChunks(music);  // Run this in a background thread
-        loadAndPlayCombatMusicInChunks(music);
+        loadAndPlayCombatMusicInChunks(music, false);
         fadeInMusic(FADE_IN_DURATION_MS);    // Start fade-in once loaded
-
     }
 
     @SideOnly(Side.CLIENT)
@@ -110,18 +109,24 @@ public class CustomMusicPlayer {
         playChunk();
         currentFile = music;
         isLoading = false;
+        BiomeMusic.LOGGER.info("Set isLoading to FALSE.");
     }
 
     @SideOnly(Side.CLIENT)
-    public static void loadAndPlayCombatMusicInChunks(String music) throws Exception {
+    public static void loadAndPlayCombatMusicInChunks(String music, boolean sole) throws Exception {
 
-        if (Objects.equals(combatOptions.combatMusicList, "default_music")) {
-            BiomeMusic.LOGGER.warn("No combat music specified. If you do not plan on using combat music, please disable it in the config.");
-            return;
+        String linkedMusic = null;
+        if (!sole) {
+            linkedMusic = musicLink.get(music);
+            if (Objects.equals(linkedMusic, "") || Objects.equals(linkedMusic, null)) {
+                if (Objects.equals(combatOptions.combatMusicList, "default_music")) {
+                    BiomeMusic.LOGGER.warn("No combat music specified. If you do not plan on using combat music, please disable it in the config.");
+                    return;
+                }
+                linkedMusic = getRandomSongForCombat();
+            }
         }
-
-        String linkedMusic = musicLink.get(music);
-        if (Objects.equals(linkedMusic, "") || Objects.equals(linkedMusic, null)) {
+        if (sole) {
             linkedMusic = getRandomSongForCombat();
         }
 
