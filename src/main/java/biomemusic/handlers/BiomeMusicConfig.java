@@ -143,13 +143,17 @@ public class BiomeMusicConfig {
 		@Config.Name("Combat Music Fade-in Time")
 		@Config.Comment("Custom Combat Music Fade-in Time. Default: 10000 | [INT / MS]")
 		public int combatMusicFadeInTime = 10000;
+
+		@Config.Name("Music Volume Multiplier")
+		@Config.Comment("The Volume Multiplier for custom music.")
+		public double musicVolumeMultiplier = 0.8;
 	}
 
 	public static class CombatOptions {
 
 		@Config.Name("Combat Music")
 		@Config.Comment("Enable or Disable Combat Music.")
-		public boolean enableCombatMusic = true;
+		public boolean enableCombatMusic = false;
 
 		@Config.Name("Combat Music List")
 		@Config.Comment("Put any music you want to be played during combat encounters in here.")
@@ -172,7 +176,7 @@ public class BiomeMusicConfig {
 	public static class UndergroundOptions {
 		@Config.Name("Enable or Disable Cavern Music")
 		@Config.Comment("Enable for music under a certain Y level. Good for cavern music.")
-		public boolean enableUndergroundMusic = true;
+		public boolean enableUndergroundMusic = false;
 
 		@Config.Name("Cavern Music Start Level")
 		@Config.Comment("The Y level at which cavern music starts.")

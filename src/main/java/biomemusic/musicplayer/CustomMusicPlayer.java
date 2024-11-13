@@ -242,7 +242,7 @@ public class CustomMusicPlayer {
         float minVolume = volumeControl.getMinimum();
         float maxVolume = volumeControl.getMaximum();
 
-        float volumeReductionFactor = 0.8f;
+        float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
         float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
         float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
@@ -280,7 +280,7 @@ public class CustomMusicPlayer {
                 float minVolume = volumeControl.getMinimum();
                 float maxVolume = volumeControl.getMaximum();
 
-                float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
                 float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
                 float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
@@ -427,7 +427,7 @@ public class CustomMusicPlayer {
                 float min = volumeControl.getMinimum();
                 float max = volumeControl.getMaximum();
 
-                float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
                 float adjustedMaxVolume = min + (volumeReductionFactor * (max - min));
 
                 float newVolume = (float) (min + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - min));
@@ -457,7 +457,7 @@ public class CustomMusicPlayer {
             float minVolume = volumeControl.getMinimum(); // Usually -80 dB
             float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
 
-            float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+            float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
             float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
             // Calculate the current volume in decibels based on Minecraft's music volume setting
@@ -497,9 +497,8 @@ public class CustomMusicPlayer {
         float minVolume = volumeControl.getMinimum(); // Usually -80 dB
         float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
 
-        float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+        float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
         float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
-        float combatAdjustedMaxVolume =  minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
         // Calculate the current volume in decibels based on Minecraft's music volume setting
         float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
@@ -553,7 +552,7 @@ public class CustomMusicPlayer {
         float minVolume = volumeControl.getMinimum(); // Usually -80 dB
         float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
 
-        float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+        float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
         float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
         // Calculate the current volume in decibels based on Minecraft's music volume setting
@@ -610,7 +609,7 @@ public class CustomMusicPlayer {
             float minVolume = volumeControl.getMinimum(); // Usually -80 dB
             float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
 
-            float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+            float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
             float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
             // Calculate the current volume in decibels based on Minecraft's music volume setting
@@ -651,7 +650,7 @@ public class CustomMusicPlayer {
                 float minVolume = volumeControl.getMinimum();
                 float maxVolume = volumeControl.getMaximum();
 
-                float volumeReductionFactor = 0.8f; // Adjust this as needed (0.8 = 80% of original volume)
+                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
                 float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
                 float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
