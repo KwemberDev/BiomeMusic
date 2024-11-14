@@ -31,7 +31,7 @@ public class MainMenuMusicHandler {
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) throws Exception {
 
-        String mainMenuMusicPath = BiomeMusicConfig.mainMenuMusic; // Get the music from the config
+        String mainMenuMusicPath = BiomeMusicConfig.acmainMenuMusic; // Get the music from the config
 
         // Check if the music is set and not equal to the default placeholder
         if (mainMenuMusicPath != null && !mainMenuMusicPath.equals("default_music")) {
@@ -103,7 +103,7 @@ public class MainMenuMusicHandler {
 
     // Play custom music defined in the config
     private static void playMainMenuMusic() throws Exception {
-        String mainMenuMusicPath = BiomeMusicConfig.mainMenuMusic;  // Get the configured music file path
+        String mainMenuMusicPath = BiomeMusicConfig.acmainMenuMusic;  // Get the configured music file path
 
         // Check if the correct music is already playing
         if (isMainMenuMusicPlaying && currentMusic.equals(mainMenuMusicPath)) {

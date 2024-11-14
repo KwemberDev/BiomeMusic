@@ -1,6 +1,7 @@
 package biomemusic.handlers;
 
 import biomemusic.BiomeMusic;
+import biomemusic.combatutils.BossTargetUtils;
 import biomemusic.combatutils.TargetingUtils;
 import biomemusic.musicplayer.CustomMusicPlayer;
 import net.minecraft.client.Minecraft;
@@ -8,10 +9,13 @@ import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.MusicTicker;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.audio.SoundManager;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Biomes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
@@ -41,24 +45,26 @@ public class BiomeMusicEventHandler {
     public static boolean isCombatMusicPlaying = false;
     public static boolean isLoading = false;
     public static boolean isCavernMusicPlaying = false;
+    public static boolean isBossMusicPlaying = false;
+    private static String currentBossMusic = "";
 
     @SubscribeEvent
     @SideOnly(Side.CLIENT)
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) throws Exception {
-        if (MainMenuMusicHandler.isMainMenuMusicPlaying) {
+        if (MainMenuMusicHandler.isMainMenuMusicPlaying && event.player.world != null) {
             MainMenuMusicHandler.isMainMenuMusicPlaying = false;
             stopMusic();
         }
 
 
-        if (player == null) {
+        if (player == null || player != event.player) {
             player = event.player;
         }
 
         tickCounter++;
 
         if (fadeOptions.pollingRate == 0) {
-            if (tickCounter % 200 == 0) {
+            if (tickCounter % 800 == 0) {
                 BiomeMusic.LOGGER.warn("POLLING RATE IS SET TO 0 IN BIOMEMUSIC CONFIG. THIS WILL BREAK THE MOD. (forcibly stopped the mod to prevent crash.)");
             }
             return;
@@ -66,6 +72,18 @@ public class BiomeMusicEventHandler {
 
         // every 7 seconds
         if (tickCounter % fadeOptions.pollingRate == 0 && event.player != null && event.player.world != null) {
+
+            if (bossMusicOptions.enableBossMusic) {
+                String bossMusic = BossTargetUtils.bossMusicFile(event.player);
+                if (bossMusic != null) {
+                    handleBossMusic(bossMusic);
+                    return;
+                }
+            }
+
+            if (isBossMusicPlaying) {
+                isBossMusicPlaying = false;
+            }
 
             if (combatOptions.enableCombatMusic) {
                 int aggrocount = TargetingUtils.countMobsTargetingPlayer(player, combatOptions.combatRadius);
@@ -92,11 +110,11 @@ public class BiomeMusicEventHandler {
                 }
             }
 
-            if (undergroundOptions.enableUndergroundMusic) {
-                if (event.player.posY <= undergroundOptions.undergroundMusicYLevelStart) {
+            if (cpundergroundOptions.enableUndergroundMusic) {
+                if (event.player.posY <= cpundergroundOptions.undergroundMusicYLevelStart && event.player.world.provider.getDimension() == 0) {
                     handleCavernMusic();
                     return;
-                } else if (event.player.posY <= undergroundOptions.undergroundMusicYLevelStop && isCavernMusicPlaying) {
+                } else if (event.player.posY <= cpundergroundOptions.undergroundMusicYLevelStop && isCavernMusicPlaying) {
                     if (!isVanillaMusicFading) {
                         stopVanillaMusic();
                     }
@@ -120,13 +138,38 @@ public class BiomeMusicEventHandler {
     }
 
     @SideOnly(Side.CLIENT)
+    private static void handleBossMusic(String musicFile) {
+
+        if (!isBossMusicPlaying && !isFading) {
+            isBossMusicPlaying = true;
+            if (!isVanillaMusicFading && !adambientMode) {
+                fadeOutVanillaMusic();
+            }
+            BiomeMusic.LOGGER.info("PLAYING BOSS MUSIC: {}", musicFile);
+            playCustomMusic(musicFile);
+            currentBossMusic = musicFile;
+        } else if (isBossMusicPlaying && !isFading && !Objects.equals(currentBossMusic, musicFile)) {
+            if (!isVanillaMusicFading && !adambientMode) {
+                fadeOutVanillaMusic();
+            }
+            playCustomMusic(musicFile);
+            currentBossMusic = musicFile;
+        } else if (isBossMusicPlaying && !isVanillaMusicFading) {
+            stopMusic();
+        }
+
+    }
+
+    @SideOnly(Side.CLIENT)
     private static void handleCavernMusic() {
 
         if (!isCavernMusicPlaying && !isFading) {
             String musicFile = getRandomSongForCavern();
             if (!musicFile.equals("default_music") && musicFile != null) {
                 isCavernMusicPlaying = true;
-                fadeOutVanillaMusic();
+                if (!isVanillaMusicFading) {
+                    fadeOutVanillaMusic();
+                }
                 BiomeMusic.LOGGER.info("PLAYING CAVERN MUSIC");
                 playCustomMusic(musicFile);
             }
@@ -175,14 +218,14 @@ public class BiomeMusicEventHandler {
                     // If not playing or the wrong track is playing, stop and start the new one
                     isLoading = true;
 
-                    if (!isVanillaMusicFading && !ambientMode) {
+                    if (!isVanillaMusicFading && !adambientMode) {
                         fadeOutVanillaMusic();
                     }
                     BiomeMusic.LOGGER.error("PLAYED NEW CUSTOM MUSIC.");
                     CustomMusicPlayer.playCustomMusic(musicFile);
                 }
                 // if the vanilla music isnt fading, and if the correct custom music is playing. once every 10 seconds fade out vanilla music to prevent it coming back.
-                if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
+                if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !adambientMode) {
                     stopVanillaMusic();
                 }
             } else {
@@ -210,13 +253,13 @@ public class BiomeMusicEventHandler {
                         if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentFile) && !isFading)) {
                             isLoading = true;
                             BiomeMusic.LOGGER.info("set isLoading to TRUE.");
-                            if (!isVanillaMusicFading && !ambientMode) {
+                            if (!isVanillaMusicFading && !adambientMode) {
                                 fadeOutVanillaMusic();
                             }
                             playCustomMusic(randomTagMusicFile);
                             BiomeMusic.LOGGER.info("PLAYING CUSTOM MUSIC FROM TAGS.");
                         }
-                        if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !ambientMode) {
+                        if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !adambientMode) {
                             stopVanillaMusic();
                         }
                     } else {
@@ -366,7 +409,7 @@ public class BiomeMusicEventHandler {
     }
 
     public static String getRandomSongForCavern() {
-        String songList = (undergroundOptions.CavernMusic);
+        String songList = (cpundergroundOptions.CavernMusic);
 
         List<String> songs = Arrays.asList(songList.split(","));
 

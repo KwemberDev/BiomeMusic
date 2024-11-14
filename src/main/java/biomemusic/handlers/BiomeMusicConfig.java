@@ -1,7 +1,6 @@
 package biomemusic.handlers;
 
 import biomemusic.BiomeMusic;
-import net.minecraft.util.SoundEvent;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.Config;
@@ -13,7 +12,6 @@ import net.minecraftforge.registries.IForgeRegistry;
 import net.minecraftforge.registries.RegistryManager;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,11 +22,11 @@ public class BiomeMusicConfig {
 
 	@Config.Comment("What music to play on the main menu. DEFAULT: [default_music]")
 	@Config.Name("Main Menu Music")
-	public static String mainMenuMusic = "default_music";
+	public static String acmainMenuMusic = "default_music";
 
 	@Config.Name("Available Music Files")
 	@Config.Comment("List of recognized .ogg music files. \nWhen setting up custom music, include .ogg extension and make sure to spell the name of the file correctly. \nThe mod will work even if the music you specify is not in this list if the music is in the correct folder, \nas this is just a second verification step to make sure the music file is correctly placed.")
-	public static String[] availableMusicFiles = new String[0]; // Start with an empty array
+	public static String[] abavailableMusicFiles = new String[0]; // Start with an empty array
 
 	@Config.Name("Biome Music Map")
 	@Config.Comment("Biome Music Mapping. List of all recognised biomes and a corresponding input field for the music. Music specified in here will overwrite the music from biome tags.")
@@ -45,9 +43,9 @@ public class BiomeMusicConfig {
 	@Config.Name("Ambient Mode")
 	@Config.Comment("Enable or Disable Ambient mode. In this mode vanilla music will not be turned off when a custom music is set for a biome." +
 					"\nEnable if you want to use this mod for ambience sound tracks instead of music.")
-	public static boolean ambientMode = false;
+	public static boolean adambientMode = false;
 
-	@Config.Name("Combat Options")
+	@Config.Name("Combat Music Options")
 	@Config.Comment("Combat options to toggle or set.")
 	public static final CombatOptions combatOptions = new CombatOptions();
 
@@ -56,8 +54,11 @@ public class BiomeMusicConfig {
 
 	@Config.Name("Cavern Music Options")
 	@Config.Comment("Cavern Music Options.")
-	public static final UndergroundOptions undergroundOptions = new UndergroundOptions();
+	public static final UndergroundOptions cpundergroundOptions = new UndergroundOptions();
 
+	@Config.Name("Boss Music Options")
+	@Config.Comment("Boss Music Options.")
+	public static final BossMusicOptions bossMusicOptions = new BossMusicOptions();
 
 	@Mod.EventBusSubscriber(modid = BiomeMusic.MODID)
 	public static class EventHandler {
@@ -112,7 +113,7 @@ public class BiomeMusicConfig {
 		String[] musicFiles = MusicFileHandler.getAvailableMusicFiles().toArray(new String[0]);
 
 		// Update the config with the recognized music files
-		availableMusicFiles = musicFiles;
+		abavailableMusicFiles = musicFiles;
 
 		for (String music : musicFiles) {
 			musicLink.putIfAbsent(music, "");
@@ -174,7 +175,7 @@ public class BiomeMusicConfig {
 	}
 
 	public static class UndergroundOptions {
-		@Config.Name("Enable or Disable Cavern Music")
+		@Config.Name("Cavern Music")
 		@Config.Comment("Enable for music under a certain Y level. Good for cavern music.")
 		public boolean enableUndergroundMusic = false;
 
@@ -186,9 +187,24 @@ public class BiomeMusicConfig {
 		@Config.Comment("The Y Level at which Cavern Music Stops. To prevent frequent switching when at the start level, please set this value higher then the start Y level.")
 		public int undergroundMusicYLevelStop = 50;
 
-		@Config.Name("Cavern Music:")
+		@Config.Name("Cavern Music list:")
 		@Config.Comment("The Cavern Music that will play underground.")
 		public String CavernMusic = "default_music";
+	}
+
+	public static class BossMusicOptions {
+
+		@Config.Name("Boss Music")
+		@Config.Comment("Enable or Disable Boss Music!")
+		public boolean enableBossMusic = false;
+
+		@Config.Name("Boss Music List")
+		@Config.Comment("Set A boss mob and its music here! boss mob followed by a comma for its music e.g. [lycanitesmobs:rahovart,doomfear.ogg]")
+		public String[] bossMusicList = new String[0];
+
+		@Config.Name("Boss mob detection range.")
+		@Config.Comment("The range in which the mod will check for a boss mob.")
+		public int bossMusicRange = 50;
 	}
 
 }

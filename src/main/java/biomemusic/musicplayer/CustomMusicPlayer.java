@@ -59,7 +59,9 @@ public class CustomMusicPlayer {
     @SideOnly(Side.CLIENT)
     public static void loadAndPlay(String music) throws Exception {
         loadAndPlayMusicInChunks(music);  // Run this in a background thread
-        loadAndPlayCombatMusicInChunks(music, false);
+        if (combatOptions.enableCombatMusic) {
+            loadAndPlayCombatMusicInChunks(music, false);
+        }
         fadeInMusic(FADE_IN_DURATION_MS);    // Start fade-in once loaded
     }
 
