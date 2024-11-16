@@ -234,7 +234,6 @@ public class BiomeMusicEventHandler {
                             .findFirst()
                             .orElse("default_music");
 
-                    BiomeMusic.LOGGER.info(randomTagMusicFile);
                     if (!randomTagMusicFile.equals("default_music")) {
 
                         Set<String> possibleSongs = new HashSet<>();
