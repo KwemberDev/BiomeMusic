@@ -80,7 +80,6 @@ public class BiomeMusicConfig {
 		// Loop through all biomes
 		for (Biome biome : biomeRegistry) {
 			String biomeName = biome.getRegistryName().toString();
-
 			// If the biome is not in the config, add it with a default value
 			biomeMusicMap.putIfAbsent(biomeName, "default_music");
 		}

@@ -48,11 +48,9 @@ public class PauseEventHandler {
             // If a pause menu is open, pause the music
             if (CustomMusicPlayer.isMusicPlaying() && !CustomMusicPlayer.isPaused()) {
                 CustomMusicPlayer.pauseMusic();
-                BiomeMusic.LOGGER.info("Paused Music");
             } else if (combatMusicClip != null) {
                 if (combatMusicClip.isRunning() && !CustomMusicPlayer.isPaused()) {
                     CustomMusicPlayer.pauseCombatMusic();
-                    BiomeMusic.LOGGER.info("Paused Combat Music");
                 }
             }
         } else {

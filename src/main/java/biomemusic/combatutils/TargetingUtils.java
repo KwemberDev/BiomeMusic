@@ -66,7 +66,6 @@ public class TargetingUtils {
         int smoothedCount = countHistory.stream().mapToInt(Integer::intValue).sum() / countHistory.size();
 
         // Log and return the smoothed targeting count
-        BiomeMusic.LOGGER.info("CURRENT AGGRO MOB COUNT (Smoothed): {}", smoothedCount);
         entities.clear();
         return smoothedCount;
     }

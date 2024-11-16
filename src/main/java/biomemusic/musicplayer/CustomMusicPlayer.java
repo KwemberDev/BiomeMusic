@@ -111,7 +111,6 @@ public class CustomMusicPlayer {
         playChunk();
         currentFile = music;
         isLoading = false;
-        BiomeMusic.LOGGER.info("Set isLoading to FALSE.");
     }
 
     @SideOnly(Side.CLIENT)
@@ -171,7 +170,6 @@ public class CustomMusicPlayer {
 
 
         isBackgroundCombatMusicPlaying = true;
-        BiomeMusic.LOGGER.info("COMBAT MUSIC PLAYING IN BACKGROUND!");
 
         playChunkCombat();
     }

@@ -65,7 +65,7 @@ public class BiomeMusicEventHandler {
 
         if (fadeOptions.pollingRate == 0) {
             if (tickCounter % 800 == 0) {
-                BiomeMusic.LOGGER.warn("POLLING RATE IS SET TO 0 IN BIOMEMUSIC CONFIG. THIS WILL BREAK THE MOD. (forcibly stopped the mod to prevent crash.)");
+                BiomeMusic.LOGGER.error("POLLING RATE IS SET TO 0 IN BIOMEMUSIC CONFIG. THIS WILL BREAK THE MOD. (forcibly stopped the mod to prevent crash.)");
             }
             return;
         }
@@ -102,11 +102,9 @@ public class BiomeMusicEventHandler {
                 if (musicClip.isRunning()) {
                     switchToBiomeMusic();
                     isCombatMusicPlaying = false;
-                    BiomeMusic.LOGGER.warn("SWITCHED TO BIOME MUSIC.");
                 } else if (!musicClip.isRunning() && combatMusicClip.isRunning() && !isFading) {
                     stopCombatMusicWithFadeOut();
                     isCombatMusicPlaying = false;
-                    BiomeMusic.LOGGER.warn("FADED OUT COMBAT MUSIC.");
                 }
             }
 
@@ -129,7 +127,6 @@ public class BiomeMusicEventHandler {
             BlockPos pos = event.player.getPosition();
             Biome biome = event.player.world.getBiome(pos);
             String biomeName = biome.getBiomeName();
-            BiomeMusic.LOGGER.info("Current biome: {}", biomeName);
             // Call the method to handle biome-specific music
             handleBiomeMusic(biome);
 
@@ -145,7 +142,6 @@ public class BiomeMusicEventHandler {
             if (!isVanillaMusicFading && !adambientMode) {
                 fadeOutVanillaMusic();
             }
-            BiomeMusic.LOGGER.info("PLAYING BOSS MUSIC: {}", musicFile);
             playCustomMusic(musicFile);
             currentBossMusic = musicFile;
         } else if (isBossMusicPlaying && !isFading && !Objects.equals(currentBossMusic, musicFile)) {
@@ -170,7 +166,6 @@ public class BiomeMusicEventHandler {
                 if (!isVanillaMusicFading) {
                     fadeOutVanillaMusic();
                 }
-                BiomeMusic.LOGGER.info("PLAYING CAVERN MUSIC");
                 playCustomMusic(musicFile);
             }
         }
@@ -185,7 +180,6 @@ public class BiomeMusicEventHandler {
         if (!isCombatMusicPlaying && isMusicPlaying() && isBackgroundCombatMusicPlaying && !isFading) {
             isCombatMusicPlaying = true;
             fadeOutVanillaMusic();
-            BiomeMusic.LOGGER.warn("SWITCHED TO COMBAT MUSIC.");
             switchToCombatMusic();
         }
         if (!isCombatMusicPlaying && !isBackgroundCombatMusicPlaying && !isFading) {
@@ -209,6 +203,10 @@ public class BiomeMusicEventHandler {
 
             // Use the registry name (e.g., "minecraft:extreme_hills") as the key
             String configSet = BiomeMusicConfig.biomeMusicMap.get(biomeRegistryName.toString());
+            if (configSet == null) {
+                BiomeMusic.LOGGER.error("BIOME {} NOT IN REGISTRY, PREVENTING CRASH", biome);
+                return;
+            }
             String musicFile = getRandomSongForBiome(configSet);
 
             if (musicFile != null && !configSet.equals("default_music") && biome != Biomes.RIVER) {
@@ -221,7 +219,6 @@ public class BiomeMusicEventHandler {
                     if (!isVanillaMusicFading && !adambientMode) {
                         fadeOutVanillaMusic();
                     }
-                    BiomeMusic.LOGGER.error("PLAYED NEW CUSTOM MUSIC.");
                     CustomMusicPlayer.playCustomMusic(musicFile);
                 }
                 // if the vanilla music isnt fading, and if the correct custom music is playing. once every 10 seconds fade out vanilla music to prevent it coming back.
@@ -229,7 +226,6 @@ public class BiomeMusicEventHandler {
                     stopVanillaMusic();
                 }
             } else {
-                BiomeMusic.LOGGER.info("got to tags.");
                 Set<BiomeDictionary.Type> biomeTags = BiomeDictionary.getTypes(biome);
                 if (!biomeTags.isEmpty() && biome != Biomes.RIVER && !isLoading) {
                     String randomTagMusicFile = biomeTags.stream()
@@ -248,16 +244,12 @@ public class BiomeMusicEventHandler {
                             String[] songList = possibleSongList.split(",");
                             possibleSongs.addAll(Arrays.asList(songList));
                         }
-                        BiomeMusic.LOGGER.info(possibleSongs);
-                        BiomeMusic.LOGGER.info("Fading is: {}", isFading);
                         if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentFile) && !isFading)) {
                             isLoading = true;
-                            BiomeMusic.LOGGER.info("set isLoading to TRUE.");
                             if (!isVanillaMusicFading && !adambientMode) {
                                 fadeOutVanillaMusic();
                             }
                             playCustomMusic(randomTagMusicFile);
-                            BiomeMusic.LOGGER.info("PLAYING CUSTOM MUSIC FROM TAGS.");
                         }
                         if (!isVanillaMusicFading && CustomMusicPlayer.isMusicPlaying() && !adambientMode) {
                             stopVanillaMusic();

@@ -111,7 +111,6 @@ public class MainMenuMusicHandler {
             return;
         }
 
-        BiomeMusic.LOGGER.info("Wrong custom menu music. or no music playing");
         // If the wrong music is playing or no music is playing, stop the current music and play the correct one
         CustomMusicPlayer.stopMusic();  // Stop any currently playing music
 
@@ -119,7 +118,6 @@ public class MainMenuMusicHandler {
         CustomMusicPlayer.loadAndPlayMusicInChunks(mainMenuMusicPath);  // Play the correct music
         isCombatMusicPlaying = false;
         CustomMusicPlayer.adjustVolume();
-        BiomeMusic.LOGGER.info("Tried to load: {}", mainMenuMusicPath);
         // Update the state to indicate music is playing and store the current track
         currentMusic = mainMenuMusicPath;
     }
