@@ -203,13 +203,13 @@ public class BiomeMusicEventHandler {
 
             // Use the registry name (e.g., "minecraft:extreme_hills") as the key
             String configSet = BiomeMusicConfig.biomeMusicMap.get(biomeRegistryName.toString());
-            if (configSet == null) {
-                BiomeMusic.LOGGER.error("BIOME {} NOT IN REGISTRY, PREVENTING CRASH", biome);
-                return;
-            }
-            String musicFile = getRandomSongForBiome(configSet);
+            String musicFile = null;
 
-            if (musicFile != null && !configSet.equals("default_music") && biome != Biomes.RIVER) {
+            if (configSet != null) {
+                musicFile = getRandomSongForBiome(configSet);
+            }
+
+            if (musicFile != null && configSet != null && !configSet.equals("default_music") && biome != Biomes.RIVER) {
                 // Construct the path to the .ogg file in the biomemusic folder
                 // Check if the current music playing is the same as the one for this biome
                 if ((!CustomMusicPlayer.isMusicPlaying() || !CustomMusicPlayer.isCurrentTrackIncluded(configSet)) && !isFading && !isLoading) {
