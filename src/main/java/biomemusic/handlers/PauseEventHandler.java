@@ -11,6 +11,8 @@ import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import static biomemusic.combatutils.TargetingUtils.countHistory;
 import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuMusicPlaying;
@@ -18,6 +20,7 @@ import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuScreen;
 import static biomemusic.musicplayer.CustomMusicPlayer.*;
 
 @Mod.EventBusSubscriber
+@SideOnly(Side.CLIENT)
 public class PauseEventHandler {
 
     private boolean hasQueueBeenReset = false;

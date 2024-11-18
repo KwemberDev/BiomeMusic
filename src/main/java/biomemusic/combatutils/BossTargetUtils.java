@@ -6,13 +6,17 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
 import static biomemusic.handlers.BiomeMusicConfig.bossMusicOptions;
 
+@SideOnly(Side.CLIENT)
 public class BossTargetUtils {
 
+    @SideOnly(Side.CLIENT)
     public static String bossMusicFile(EntityPlayer player) {
 
         if (bossMusicOptions.enableBossMusic) {

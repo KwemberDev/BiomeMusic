@@ -1,11 +1,14 @@
 package biomemusic.handlers;
 
 import biomemusic.BiomeMusic;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+@SideOnly(Side.CLIENT)
 public class MusicFileHandler {
 
     // Method to get all .ogg files from the custom folder

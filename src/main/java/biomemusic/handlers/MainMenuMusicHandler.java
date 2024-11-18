@@ -23,6 +23,7 @@ import static biomemusic.handlers.BiomeMusicEventHandler.isCombatMusicPlaying;
 import static biomemusic.musicplayer.CustomMusicPlayer.*;
 
 @Mod.EventBusSubscriber
+@SideOnly(Side.CLIENT)
 public class MainMenuMusicHandler {
 
     public static boolean isMainMenuMusicPlaying = false;
