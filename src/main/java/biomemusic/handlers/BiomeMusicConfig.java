@@ -67,58 +67,46 @@ public class BiomeMusicConfig {
 		public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
 			if (event.getModID().equals(BiomeMusic.MODID)) {
 				ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
-				updateBiomeList();  // Call this method to update the biome list in the config
+				updateBiomeList();
 				updateBiomeTagList();
-				updateMusicList();  // Call this method to update the music list in the config
+				updateMusicList();
 			}
 		}
 	}
 
 	public static void updateBiomeList() {
 		IForgeRegistry<Biome> biomeRegistry = RegistryManager.ACTIVE.getRegistry(Biome.class);
-
-		// Loop through all biomes
 		for (Biome biome : biomeRegistry) {
 			String biomeName = biome.getRegistryName().toString();
-			// If the biome is not in the config, add it with a default value
 			biomeMusicMap.putIfAbsent(biomeName, "default_music");
 		}
-
-		// Save any changes to the config (new biomes added)
 		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
 	}
 
 	public static void updateBiomeTagList() {
 		IForgeRegistry<Biome> biomeRegistry = RegistryManager.ACTIVE.getRegistry(Biome.class);
 
-		// Collect all unique tags across registered biomes
 		Set<String> allTags = biomeRegistry.getValues().stream()
 				.flatMap(biome -> BiomeDictionary.getTypes(biome).stream())
 				.map(type -> type.getName().toLowerCase())
 				.collect(Collectors.toSet());
 
-		// Add each unique tag to the biomeTagMusicMap with a default value, if not already present
 		for (String tag : allTags) {
 			biomeTagMusicMap.putIfAbsent(tag, "default_music");
 		}
 
-		// Save any changes to the config (new tags added)
 		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
 	}
 
 
 	public static void updateMusicList() {
-		// Fetch available music files from the custom folder
-		String[] musicFiles = MusicFileHandler.getAvailableMusicFiles().toArray(new String[0]);
 
-		// Update the config with the recognized music files
+		String[] musicFiles = MusicFileHandler.getAvailableMusicFiles().toArray(new String[0]);
 		abavailableMusicFiles = musicFiles;
 
 		for (String music : musicFiles) {
 			musicLink.putIfAbsent(music, "");
 		}
-
-		// Sync the config after updating the music list
 		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
 	}
 

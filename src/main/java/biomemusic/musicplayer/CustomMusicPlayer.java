@@ -30,7 +30,7 @@ public class CustomMusicPlayer {
     private static final int FADE_IN_DURATION_MS = fadeOptions.customMusicFadeInTime;
     private static final int FADE_OUT_DURATION_MS = fadeOptions.customMusicFadeOutTime;
     public static final int COMBAT_FADE_IN_DURATION = fadeOptions.combatMusicFadeInTime;
-    private static final long CHUNK_DURATION_MS = 10_000; // 10 seconds in milliseconds
+    private static final long CHUNK_DURATION_MS = 10_000;
     public static boolean isFading = false;
     private static AudioInputStream pcmStream;
     private static AudioInputStream combatpcmStream;
@@ -40,14 +40,13 @@ public class CustomMusicPlayer {
     @SideOnly(Side.CLIENT)
     public static void playCustomMusic(String musicFile) {
 
-        // Start loading the music in a background thread to prevent game lag
         new Thread(() -> {
             try {
                 if (musicClip != null && isMusicPlaying) {
                     if (!currentFile.equals(musicFile)) {
                         fadeOutMusicAndPlayNew(musicFile);
                     }
-                    return;  // Already playing this track, no need to reload
+                    return;
                 }
                     loadAndPlay(musicFile);
             } catch (Exception e) {
@@ -58,16 +57,16 @@ public class CustomMusicPlayer {
 
     @SideOnly(Side.CLIENT)
     public static void loadAndPlay(String music) throws Exception {
-        loadAndPlayMusicInChunks(music);  // Run this in a background thread
+        loadAndPlayMusicInChunks(music);
         if (combatOptions.enableCombatMusic) {
             loadAndPlayCombatMusicInChunks(music, false);
         }
-        fadeInMusic(FADE_IN_DURATION_MS);    // Start fade-in once loaded
+        fadeInMusic(FADE_IN_DURATION_MS);
     }
 
     @SideOnly(Side.CLIENT)
     public static void loadAndPlayMusicInChunks(String music) throws Exception {
-        stopMusic();  // Stop any currently playing music
+        stopMusic();
 
         String filePath = BiomeMusic.musicFolder.getPath() + "/" + music;
 
@@ -86,10 +85,9 @@ public class CustomMusicPlayer {
 
         pcmStream = AudioSystem.getAudioInputStream(decodedFormat, audioStream);
 
-        // Use DataLine for audio information and create the Clip instance for playback
         DataLine.Info info = new DataLine.Info(Clip.class, decodedFormat);
         musicClip = (Clip) AudioSystem.getLine(info);
-        musicClip.open(pcmStream);  // Open in this background thread
+        musicClip.open(pcmStream);
 
         FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
         float minVolume = volumeControl.getMinimum();
@@ -100,7 +98,7 @@ public class CustomMusicPlayer {
                 if (musicClip.getMicrosecondPosition() + CHUNK_DURATION_MS * 1000 < musicClip.getMicrosecondLength()) {
                     loadNextChunk();
                 } else {
-                    musicClip.setMicrosecondPosition(0); // Loop to start
+                    musicClip.setMicrosecondPosition(0);
                     musicClip.start();
                 }
             }
@@ -148,10 +146,9 @@ public class CustomMusicPlayer {
 
         combatpcmStream = AudioSystem.getAudioInputStream(decodedFormat, audioStream);
 
-        // Use DataLine for audio information and create the Clip instance for playback
         DataLine.Info info = new DataLine.Info(Clip.class, decodedFormat);
         combatMusicClip = (Clip) AudioSystem.getLine(info);
-        combatMusicClip.open(combatpcmStream);  // Open in this background thread
+        combatMusicClip.open(combatpcmStream);
 
         FloatControl volumeControl = (FloatControl) combatMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
         float minVolume = volumeControl.getMinimum();
@@ -162,19 +159,17 @@ public class CustomMusicPlayer {
                 if (combatMusicClip.getMicrosecondPosition() + CHUNK_DURATION_MS * 1000 < combatMusicClip.getMicrosecondLength()) {
                     loadNextChunkCombat();
                 } else {
-                    combatMusicClip.setMicrosecondPosition(0); // Loop to start
+                    combatMusicClip.setMicrosecondPosition(0);
                     combatMusicClip.start();
                 }
             }
         });
-
 
         isBackgroundCombatMusicPlaying = true;
 
         playChunkCombat();
     }
 
-    // Load and play the next chunk
     private static void loadNextChunk() {
         if (musicClip != null && pcmStream != null) {
             try {
@@ -183,7 +178,7 @@ public class CustomMusicPlayer {
                 if (nextPosition < musicClip.getMicrosecondLength()) {
                     musicClip.setMicrosecondPosition(nextPosition);
                 } else {
-                    musicClip.setMicrosecondPosition(0); // Start over at end of track
+                    musicClip.setMicrosecondPosition(0);
                 }
                 playChunk();
             } catch (Exception e) {
@@ -200,7 +195,7 @@ public class CustomMusicPlayer {
                 if (nextPosition < combatMusicClip.getMicrosecondLength()) {
                     combatMusicClip.setMicrosecondPosition(nextPosition);
                 } else {
-                    combatMusicClip.setMicrosecondPosition(0); // Start over at end of track
+                    combatMusicClip.setMicrosecondPosition(0);
                 }
                 playChunkCombat();
             } catch (Exception e) {
@@ -280,7 +275,7 @@ public class CustomMusicPlayer {
                 float minVolume = volumeControl.getMinimum();
                 float maxVolume = volumeControl.getMaximum();
 
-                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
+                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
                 float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
                 float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
@@ -427,7 +422,7 @@ public class CustomMusicPlayer {
                 float min = volumeControl.getMinimum();
                 float max = volumeControl.getMaximum();
 
-                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
+                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
                 float adjustedMaxVolume = min + (volumeReductionFactor * (max - min));
 
                 float newVolume = (float) (min + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - min));
@@ -449,18 +444,15 @@ public class CustomMusicPlayer {
             isFading = true;
             FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
-            // Get the current volume based on Minecraft's sound settings
             Minecraft mc = Minecraft.getMinecraft();
             float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
 
-            // Get the minimum and maximum possible volume
-            float minVolume = volumeControl.getMinimum(); // Usually -80 dB
-            float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
+            float minVolume = volumeControl.getMinimum();
+            float maxVolume = volumeControl.getMaximum();
 
-            float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
+            float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
             float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
-            // Calculate the current volume in decibels based on Minecraft's music volume setting
             float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
 
             new Thread(() -> {
@@ -469,14 +461,13 @@ public class CustomMusicPlayer {
                     long fadeInterval = FADE_OUT_DURATION_MS / fadeSteps;
                     float volumeStep = (currentVolume - minVolume) / fadeSteps;
 
-                    // Gradually decrease the volume from the current volume to the minimum volume
                     for (int i = fadeSteps; i >= 0; i--) {
                         float newVolume = minVolume + (i * volumeStep);
                         volumeControl.setValue(newVolume);
                         Thread.sleep(fadeInterval);
                     }
 
-                    stopMusic(); // Stop the music after fading out
+                    stopMusic();
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -494,13 +485,12 @@ public class CustomMusicPlayer {
         Minecraft mc = Minecraft.getMinecraft();
         float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
 
-        float minVolume = volumeControl.getMinimum(); // Usually -80 dB
-        float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
+        float minVolume = volumeControl.getMinimum();
+        float maxVolume = volumeControl.getMaximum();
 
-        float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
+        float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
         float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
-        // Calculate the current volume in decibels based on Minecraft's music volume setting
         float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
 
         new Thread(() -> {
@@ -509,7 +499,6 @@ public class CustomMusicPlayer {
                 long fadeInterval = COMBAT_FADE_IN_DURATION / fadeSteps;
                 float volumeStep = (currentVolume - minVolume) / fadeSteps;
 
-                // Gradually decrease the volume from the current volume to the minimum volume
                 for (int i = fadeSteps; i >= 0; i--) {
                     float newVolume = minVolume + (i * volumeStep);
                     volumeControl.setValue(newVolume);
@@ -549,13 +538,12 @@ public class CustomMusicPlayer {
         Minecraft mc = Minecraft.getMinecraft();
         float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
 
-        float minVolume = volumeControl.getMinimum(); // Usually -80 dB
-        float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
+        float minVolume = volumeControl.getMinimum();
+        float maxVolume = volumeControl.getMaximum();
 
-        float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
+        float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
         float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
-        // Calculate the current volume in decibels based on Minecraft's music volume setting
         float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
 
         new Thread(() -> {
@@ -564,7 +552,6 @@ public class CustomMusicPlayer {
                 long fadeInterval = COMBAT_FADE_IN_DURATION / fadeSteps;
                 float volumeStep = (currentVolume - minVolume) / fadeSteps;
 
-                // Gradually decrease the volume from the current volume to the minimum volume
                 for (int i = fadeSteps; i >= 0; i--) {
                     float newVolume = minVolume + (i * volumeStep);
                     combatVolumeControl.setValue(newVolume);
@@ -601,18 +588,15 @@ public class CustomMusicPlayer {
             isFading = true;
             FloatControl volumeControl = (FloatControl) combatMusicClip.getControl(FloatControl.Type.MASTER_GAIN);
 
-            // Get the current volume based on Minecraft's sound settings
             Minecraft mc = Minecraft.getMinecraft();
             float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
 
-            // Get the minimum and maximum possible volume
-            float minVolume = volumeControl.getMinimum(); // Usually -80 dB
-            float maxVolume = volumeControl.getMaximum(); // Usually 6 dB
+            float minVolume = volumeControl.getMinimum();
+            float maxVolume = volumeControl.getMaximum();
 
-            float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
+            float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
             float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
-            // Calculate the current volume in decibels based on Minecraft's music volume setting
             float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
 
             new Thread(() -> {
@@ -621,14 +605,13 @@ public class CustomMusicPlayer {
                     long fadeInterval = COMBAT_FADE_IN_DURATION / fadeSteps;
                     float volumeStep = (currentVolume - minVolume) / fadeSteps;
 
-                    // Gradually decrease the volume from the current volume to the minimum volume
                     for (int i = fadeSteps; i >= 0; i--) {
                         float newVolume = minVolume + (i * volumeStep);
                         volumeControl.setValue(newVolume);
                         Thread.sleep(fadeInterval);
                     }
 
-                    stopMusic(); // Stop the music after fading out
+                    stopMusic();
                     isFading = false;
 
                 } catch (InterruptedException e) {
@@ -650,7 +633,7 @@ public class CustomMusicPlayer {
                 float minVolume = volumeControl.getMinimum();
                 float maxVolume = volumeControl.getMaximum();
 
-                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier; // Adjust this as needed (0.8 = 80% of original volume)
+                float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
                 float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
 
                 float targetVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));

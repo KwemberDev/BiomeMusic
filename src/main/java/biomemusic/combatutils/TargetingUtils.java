@@ -19,7 +19,6 @@ import java.util.Queue;
 @SideOnly(Side.CLIENT)
 public class TargetingUtils {
 
-    // Define the size of the rolling average window
     private static final int SMOOTHING_WINDOW = 5;
     public static final Queue<Integer> countHistory = new LinkedList<>();
 
@@ -34,38 +33,26 @@ public class TargetingUtils {
     @SideOnly(Side.CLIENT)
     public static int countMobsTargetingPlayer(EntityPlayer player, double radius) {
         World world = player.getEntityWorld();
-
-        // Define the search area around the player using an AxisAlignedBB.
         AxisAlignedBB searchArea = new AxisAlignedBB(
                 player.posX - radius, player.posY - radius, player.posZ - radius,
                 player.posX + radius, player.posY + radius, player.posZ + radius
         );
-
-        // Retrieve all EntityLivingBase instances within the specified search area.
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchArea);
-
         int targetingCount = 0;
         for (EntityLivingBase entity : entities) {
-            // Check if the entity is a hostile mob (implements IMob) and is an instance of EntityLiving.
             if ((entity instanceof IAnimals || entity instanceof IEntityOwnable) && entity instanceof EntityLiving) {
                 EntityLiving hostileMob = (EntityLiving) entity;
-                // Check if the hostile mob's current attack target or revenge target is the player.
                 if (hostileMob.getAttackTarget() == player || hostileMob.getRevengeTarget() == player) {
                     targetingCount++;
                 }
             }
         }
 
-        // Update the count history for smoothing
         if (countHistory.size() >= SMOOTHING_WINDOW) {
-            countHistory.poll();  // Remove the oldest count if we exceed the window size
+            countHistory.poll();
         }
-        countHistory.offer(targetingCount);  // Add the new count to the history
-
-        // Calculate the rolling average from the history
+        countHistory.offer(targetingCount);
         int smoothedCount = countHistory.stream().mapToInt(Integer::intValue).sum() / countHistory.size();
-
-        // Log and return the smoothed targeting count
         entities.clear();
         return smoothedCount;
     }

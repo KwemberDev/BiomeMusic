@@ -27,14 +27,13 @@ import static biomemusic.musicplayer.CustomMusicPlayer.*;
 public class MainMenuMusicHandler {
 
     public static boolean isMainMenuMusicPlaying = false;
-    public static String currentMusic = ""; // Track the currently playing music file
+    public static String currentMusic = "";
 
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) throws Exception {
 
-        String mainMenuMusicPath = BiomeMusicConfig.acmainMenuMusic; // Get the music from the config
+        String mainMenuMusicPath = BiomeMusicConfig.acmainMenuMusic;
 
-        // Check if the music is set and not equal to the default placeholder
         if (mainMenuMusicPath != null && !mainMenuMusicPath.equals("default_music")) {
 
             Minecraft mc = Minecraft.getMinecraft();
@@ -44,7 +43,6 @@ public class MainMenuMusicHandler {
                     if (combatMusicClip != null && combatMusicClip.isRunning()) {
                         stopCombatMusic();
                     }
-                    // This is a custom main menu screen
                     stopVanillaMusicMainMenu();
                     playMainMenuMusic();
                 }
@@ -60,23 +58,18 @@ public class MainMenuMusicHandler {
 
             }
 
-            // Check if the current screen is one of the main menus
             if (isMainMenuScreen(mc) && !Loader.isModLoaded("lumien.custommainmenu")) {
                 if (combatMusicClip != null && combatMusicClip.isRunning()) {
                     stopCombatMusic();
                 }
-                // Stop any vanilla music and attempt to play the custom music
                 stopVanillaMusicMainMenu();
 
-                // Wrap the custom music player in a try-catch block to handle invalid file paths
                 try {
-                    playMainMenuMusic();  // Pass the file path to play
+                    playMainMenuMusic();
                 } catch (Exception e) {
-                    // Log an error if the music file cannot be found or loaded
                     BiomeMusic.LOGGER.error("Failed to play main menu music. File not found or invalid: {}", mainMenuMusicPath, e);
                 }
 
-                // If no longer in the main menu, stop the custom music
                  if (isMainMenuMusicPlaying && !isMainMenuScreen(mc)) {
                     CustomMusicPlayer.stopMusic();
 
@@ -93,8 +86,6 @@ public class MainMenuMusicHandler {
         }
     }
 
-
-    // Check if the current screen is one where you want to stop the vanilla music and play custom music
     public static boolean isMainMenuScreen(Minecraft mc) {
         return mc.currentScreen instanceof GuiMainMenu
                 || mc.currentScreen instanceof GuiWorldSelection
@@ -102,24 +93,18 @@ public class MainMenuMusicHandler {
                 || mc.currentScreen instanceof GuiMultiplayer;
     }
 
-    // Play custom music defined in the config
     private static void playMainMenuMusic() throws Exception {
-        String mainMenuMusicPath = BiomeMusicConfig.acmainMenuMusic;  // Get the configured music file path
+        String mainMenuMusicPath = BiomeMusicConfig.acmainMenuMusic;
 
-        // Check if the correct music is already playing
         if (isMainMenuMusicPlaying && currentMusic.equals(mainMenuMusicPath)) {
-            // The correct music is already playing, no need to change
             return;
         }
 
-        // If the wrong music is playing or no music is playing, stop the current music and play the correct one
-        CustomMusicPlayer.stopMusic();  // Stop any currently playing music
-
+        CustomMusicPlayer.stopMusic();
         isMainMenuMusicPlaying = true;
-        CustomMusicPlayer.loadAndPlayMusicInChunks(mainMenuMusicPath);  // Play the correct music
+        CustomMusicPlayer.loadAndPlayMusicInChunks(mainMenuMusicPath);
         isCombatMusicPlaying = false;
         CustomMusicPlayer.adjustVolume();
-        // Update the state to indicate music is playing and store the current track
         currentMusic = mainMenuMusicPath;
     }
 

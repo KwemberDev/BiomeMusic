@@ -33,12 +33,11 @@ public class BiomeMusic {
 	@Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
 
-        // Create a folder in the Minecraft directory for custom music files
-        File minecraftDir = event.getModConfigurationDirectory().getParentFile();  // This gets the instance directory
+        File minecraftDir = event.getModConfigurationDirectory().getParentFile();
         musicFolder = new File(minecraftDir, "biomemusic");
 
         if (!musicFolder.exists()) {
-            musicFolder.mkdirs();  // Create the folder if it doesn't exist
+            musicFolder.mkdirs();
         }
 
 
@@ -51,7 +50,6 @@ public class BiomeMusic {
 
     @Mod.EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        // Initialize and update the biome list in the config
         BiomeMusicConfig.updateBiomeList();
         BiomeMusicConfig.updateBiomeTagList();
         BiomeMusicConfig.updateMusicList();

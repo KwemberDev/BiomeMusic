@@ -36,19 +36,15 @@ public class PauseEventHandler {
             hasQueueBeenReset = false;
         }
 
-        // Check if the player is in a world or not
         if (mc.world == null && !isMainMenuMusicPlaying) {
-            // If no world is loaded (i.e., player is in main menu), stop any playing music
             if (CustomMusicPlayer.isMusicPlaying()) {
                 CustomMusicPlayer.stopMusic();
 
             }
-            return;  // Exit early, no need to check further
+            return;
         }
 
-        // Check if any pause-related GUI is open, including submenus from the pause screen
         if (isPauseMenuOpen(mc)) {
-            // If a pause menu is open, pause the music
             if (CustomMusicPlayer.isMusicPlaying() && !CustomMusicPlayer.isPaused()) {
                 CustomMusicPlayer.pauseMusic();
             } else if (combatMusicClip != null) {
@@ -57,10 +53,9 @@ public class PauseEventHandler {
                 }
             }
         } else {
-            // If no pause-related menu is open, resume the music if it was paused
 
             if (CustomMusicPlayer.isPaused() && !isMainMenuScreen(mc)) {
-                if (!CustomMusicPlayer.isFading) {  // Use the class's field for fading check
+                if (!CustomMusicPlayer.isFading) {
                     CustomMusicPlayer.adjustVolume();
                 }
                 CustomMusicPlayer.resumeMusic();
@@ -72,10 +67,9 @@ public class PauseEventHandler {
 
     private boolean isPauseMenuOpen(Minecraft mc) {
         if (mc.currentScreen == null) {
-            return false;  // No screen is open, game is not paused
+            return false;
         }
 
-        // Check for known pause-related GUIs
         boolean isKnownPauseMenu = mc.currentScreen instanceof GuiIngameMenu
                 || mc.currentScreen instanceof GuiOptions
                 || mc.currentScreen instanceof GuiStats
@@ -93,16 +87,14 @@ public class PauseEventHandler {
                 || mc.currentScreen instanceof ScreenChatOptions
                 ;
 
-        // Additional checks for GUIs that do not extend GuiScreen
         if (mc.currentScreen.getClass().getName().contains("Advancement")) {
-            return true;  // Pause for advancement GUI
+            return true;
         }
 
         if (mc.currentScreen.getClass().getName().contains("LockIconButton")) {
-            return true;  // Pause for lock icon GUI
+            return true;
         }
 
-        // If any of the known or custom conditions are met, return true
         return isKnownPauseMenu;
     }
 
