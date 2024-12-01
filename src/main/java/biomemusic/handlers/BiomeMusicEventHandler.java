@@ -148,7 +148,7 @@ public class BiomeMusicEventHandler {
             playCustomMusic(musicFile);
             currentBossMusic = musicFile;
         } else if (isBossMusicPlaying && !isVanillaMusicFading) {
-            stopMusic();
+            stopVanillaMusic();
         }
 
     }
