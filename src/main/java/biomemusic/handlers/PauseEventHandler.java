@@ -60,6 +60,9 @@ public class PauseEventHandler {
                 }
                 CustomMusicPlayer.resumeMusic();
             } else if (CustomMusicPlayer.isPaused() && isMainMenuScreen(mc)) {
+                if (!CustomMusicPlayer.isFading) {
+                    CustomMusicPlayer.adjustVolume();
+                }
                 resumeMusic();
             }
         }

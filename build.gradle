@@ -65,6 +65,10 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     implementation 'com.googlecode.soundlibs:vorbisspi:1.0.3.3'
+    compileOnly 'org.ow2.asm:asm-util:6.2'              // Available only at compile time
+    compileOnly 'org.ow2.asm:asm:6.2'
+    compileOnly 'org.ow2.asm:asm-tree:6.2'
+    compileOnly 'org.ow2.asm:asm-analysis:6.2'
 
 }
 
@@ -76,6 +80,22 @@ processResources {
         expand 'mod_id': mod_id, 'mod_name': mod_name, 'version': project.version,
                 'mcversion': minecraft_version, 'mod_description': mod_description,
                 'mod_author': mod_author
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        force 'org.ow2.asm:asm:5.2' // Use an older, compatible ASM version
+    }
+}
+
+// Additionally, exclude problematic files during dependency resolution
+configurations {
+    runtimeClasspath {
+        exclude group: 'org.ow2.asm', module: 'asm-util'
+        exclude group: 'org.ow2.asm', module: 'asm-analysis'
+        exclude group: 'org.ow2.asm', module: 'asm-tree'
+        exclude group: 'org.ow2.asm', module: 'asm'
     }
 }
 
@@ -98,6 +118,7 @@ jar {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 
+    exclude('META-INF/versions/**', 'module-info.class')
     // Prevent duplicate files (like META-INF files) that can cause issues
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
 
