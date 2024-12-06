@@ -45,5 +45,6 @@ The [Polling Rate] option is the heart of the mod. every action the mod takes is
 - While the mod does work with *most* Modded entities and biomes, some might not work. The mod was tested with mods like DefiledLands and Lycanites, But some mobs from other mods with which the mod was not tested might not be compatible. Similarly for some custom biomes from other mods, they might not be recognized. Even if the mod does not recognize a biome, as long as they either have parent biomes or biome tags, the music set using biome tags will work.
 
 - Please do not forget to add the .ogg to the sound files when setting up music. Without .ogg behind the file name it will not work!
+- Please do not forget to set values back to "default_music" when you want to disable something. It might break certain functions if left empty.
 
 - Yes, I will probably update this mod to later versions of minecraft if I have time or if the mod gains a lot of traction.
