@@ -14,7 +14,6 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import static biomemusic.combatutils.TargetingUtils.countHistory;
 import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuMusicPlaying;
 import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuScreen;
 import static biomemusic.musicplayer.CustomMusicPlayer.*;
@@ -28,13 +27,6 @@ public class PauseEventHandler {
     @SubscribeEvent
     public void onClientTick(TickEvent.ClientTickEvent event) {
         Minecraft mc = Minecraft.getMinecraft();
-
-        if (mc.world == null && !hasQueueBeenReset) {
-            TargetingUtils.resetQueue();
-            hasQueueBeenReset = true;
-        } else if (mc.world != null) {
-            hasQueueBeenReset = false;
-        }
 
         if (mc.world == null && !isMainMenuMusicPlaying) {
             if (CustomMusicPlayer.isMusicPlaying()) {

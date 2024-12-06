@@ -56,7 +56,7 @@ public class BiomeMusicEventHandler {
             stopMusic();
         }
 
-        if (player == null || player != event.player) {
+        if (player == null || player != event.player || player.getUniqueID() != event.player.getUniqueID()) {
             player = event.player;
         }
 
@@ -205,7 +205,7 @@ public class BiomeMusicEventHandler {
             }
 
             if (musicFile != null && configSet != null && !configSet.equals("default_music") && biome != Biomes.RIVER) {
-                if ((!CustomMusicPlayer.isMusicPlaying() || !CustomMusicPlayer.isCurrentTrackIncluded(configSet)) && !isFading && !isLoading) {
+                if ((!CustomMusicPlayer.isMusicPlaying() || !CustomMusicPlayer.isCurrentTrackIncluded(configSet)) && !isFading && !isLoading && !musicFile.equals(hasEndFile)) {
                     isLoading = true;
 
                     if (!isVanillaMusicFading && !adambientMode) {
@@ -234,7 +234,7 @@ public class BiomeMusicEventHandler {
                             String[] songList = possibleSongList.split(",");
                             possibleSongs.addAll(Arrays.asList(songList));
                         }
-                        if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentFile) && !isFading)) {
+                        if ((!CustomMusicPlayer.isMusicPlaying() || !possibleSongs.contains(currentFile) && !isFading) && !Objects.equals(hasEndFile, randomTagMusicFile)) {
                             isLoading = true;
                             if (!isVanillaMusicFading && !adambientMode) {
                                 fadeOutVanillaMusic();
@@ -245,6 +245,9 @@ public class BiomeMusicEventHandler {
                             stopVanillaMusic();
                         }
                     } else {
+                        if (!Objects.equals(hasEndFile, "")) {
+                            hasEndFile = "";
+                        }
                         if (CustomMusicPlayer.isMusicPlaying() && !isFading && !isVanillaMusicFading) {
                             CustomMusicPlayer.stopMusicWithFadeOut();
                         }

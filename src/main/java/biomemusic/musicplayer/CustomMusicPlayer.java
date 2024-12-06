@@ -36,6 +36,7 @@ public class CustomMusicPlayer {
     private static AudioInputStream combatpcmStream;
     public static String currentFile = "";
     public static boolean isBackgroundCombatMusicPlaying = false;
+    public static String hasEndFile = "";
 
     @SideOnly(Side.CLIENT)
     public static void playCustomMusic(String musicFile) {
@@ -66,7 +67,7 @@ public class CustomMusicPlayer {
 
     @SideOnly(Side.CLIENT)
     public static void loadAndPlayMusicInChunks(String music) throws Exception {
-        stopMusic();
+        stopMusic(); // Ensure no music is playing before starting a new track
 
         String filePath = BiomeMusic.musicFolder.getPath() + "/" + music;
 
@@ -98,18 +99,26 @@ public class CustomMusicPlayer {
                 if (musicClip.getMicrosecondPosition() + CHUNK_DURATION_MS * 1000 < musicClip.getMicrosecondLength()) {
                     loadNextChunk();
                 } else {
-                    musicClip.setMicrosecondPosition(0);
-                    musicClip.start();
+                    if (musicClip != null) {
+                        musicClip.stop();
+                        musicClip.close();
+                    }
+                    isMusicPlaying = false;
+                    isPaused = false;
+                    pausePosition = 0;
+                    hasEndFile = currentFile;
+                    isFading = false;
+                    stopMusic();
                 }
             }
         });
 
-
         isMusicPlaying = true;
-        playChunk();
+        playChunk(); // Start the first chunk
         currentFile = music;
         isLoading = false;
     }
+
 
     @SideOnly(Side.CLIENT)
     public static void loadAndPlayCombatMusicInChunks(String music, boolean sole) throws Exception {
@@ -314,6 +323,7 @@ public class CustomMusicPlayer {
             isPaused = false;
             pausePosition = 0;
             currentFile = "";
+            hasEndFile = "";
             isFading = false;
             isBackgroundCombatMusicPlaying = false;
             isCombatMusicPlaying = false;
