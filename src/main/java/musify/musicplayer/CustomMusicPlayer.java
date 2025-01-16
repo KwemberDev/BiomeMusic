@@ -1,7 +1,6 @@
-package biomemusic.musicplayer;
+package musify.musicplayer;
 
-import biomemusic.BiomeMusic;
-import biomemusic.handlers.BiomeMusicConfig;
+import musify.Musify;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.SoundCategory;
 import net.minecraftforge.fml.relauncher.Side;
@@ -14,8 +13,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static biomemusic.handlers.BiomeMusicConfig.*;
-import static biomemusic.handlers.BiomeMusicEventHandler.*;
+import static musify.handlers.BiomeMusicConfig.*;
+import static musify.handlers.BiomeMusicEventHandler.*;
 
 
 @SideOnly(Side.CLIENT)
@@ -37,6 +36,7 @@ public class CustomMusicPlayer {
     public static String currentFile = "";
     public static boolean isBackgroundCombatMusicPlaying = false;
     public static String hasEndFile = "";
+    public static boolean isSilent = false;
 
     @SideOnly(Side.CLIENT)
     public static void playCustomMusic(String musicFile) {
@@ -69,7 +69,7 @@ public class CustomMusicPlayer {
     public static void loadAndPlayMusicInChunks(String music) throws Exception {
         stopMusic(); // Ensure no music is playing before starting a new track
 
-        String filePath = BiomeMusic.musicFolder.getPath() + "/" + music;
+        String filePath = Musify.musicFolder.getPath() + "/" + music;
 
         File musicFile = new File(filePath);
         AudioInputStream audioStream = AudioSystem.getAudioInputStream(musicFile);
@@ -128,7 +128,7 @@ public class CustomMusicPlayer {
             linkedMusic = musicLink.get(music);
             if (Objects.equals(linkedMusic, "") || Objects.equals(linkedMusic, null)) {
                 if (Objects.equals(combatOptions.combatMusicList, "default_music")) {
-                    BiomeMusic.LOGGER.warn("No combat music specified. If you do not plan on using combat music, please disable it in the config.");
+                    Musify.LOGGER.warn("No combat music specified. If you do not plan on using combat music, please disable it in the config.");
                     return;
                 }
                 linkedMusic = getRandomSongForCombat();
@@ -138,7 +138,7 @@ public class CustomMusicPlayer {
             linkedMusic = getRandomSongForCombat();
         }
 
-        String filePath = BiomeMusic.musicFolder.getPath() + "/" + linkedMusic;
+        String filePath = Musify.musicFolder.getPath() + "/" + linkedMusic;
 
         File musicFile = new File(filePath);
         AudioInputStream audioStream = AudioSystem.getAudioInputStream(musicFile);
@@ -366,7 +366,7 @@ public class CustomMusicPlayer {
 
     @SideOnly(Side.CLIENT)
     public static void pauseMusic() {
-        if (musicClip != null && musicClip.isRunning()) {
+        if (musicClip != null && musicClip.isRunning() && !isSilent) {
             isPaused = true;
             pausePosition = musicClip.getMicrosecondPosition();
             musicClip.stop();
@@ -670,6 +670,53 @@ public class CustomMusicPlayer {
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void silenceMusic() {
+        if (musicClip != null && musicClip.isRunning() && !isCombatMusicPlaying && !isFading && !isSilent) {
+
+            isFading = true;
+            isSilent = true;
+            FloatControl volumeControl = (FloatControl) musicClip.getControl(FloatControl.Type.MASTER_GAIN);
+
+            Minecraft mc = Minecraft.getMinecraft();
+            float musicVolume = mc.gameSettings.getSoundLevel(SoundCategory.MUSIC);
+
+            float minVolume = volumeControl.getMinimum();
+            float maxVolume = volumeControl.getMaximum();
+
+            float volumeReductionFactor = (float) fadeOptions.musicVolumeMultiplier;
+            float adjustedMaxVolume = minVolume + (volumeReductionFactor * (maxVolume - minVolume));
+
+            float currentVolume = (float) (minVolume + (Math.log10(musicVolume * 149 + 1) / Math.log10(150)) * (adjustedMaxVolume - minVolume));
+
+            new Thread(() -> {
+                try {
+                    int fadeSteps = 100;
+                    long fadeInterval = (FADE_OUT_DURATION_MS / 2) / fadeSteps;
+                    float volumeStep = (currentVolume - minVolume) / fadeSteps;
+
+                    for (int i = fadeSteps; i >= 0; i--) {
+                        float newVolume = minVolume + (i * volumeStep);
+                        volumeControl.setValue(newVolume);
+                        Thread.sleep(fadeInterval);
+                    }
+
+                    isFading = false;
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void resumeMusicWithFadeIn() {
+        if (isSilent && musicClip != null && musicClip.isRunning() && !isFading) {
+            fadeInMusic(FADE_IN_DURATION_MS/2);
+            isSilent = false;
         }
     }
 

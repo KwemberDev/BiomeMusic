@@ -1,8 +1,6 @@
-package biomemusic.handlers;
+package musify.handlers;
 
-import biomemusic.BiomeMusic;
-import biomemusic.combatutils.TargetingUtils;
-import biomemusic.musicplayer.CustomMusicPlayer;
+import musify.musicplayer.CustomMusicPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.client.gui.achievement.GuiStats;
@@ -14,9 +12,9 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuMusicPlaying;
-import static biomemusic.handlers.MainMenuMusicHandler.isMainMenuScreen;
-import static biomemusic.musicplayer.CustomMusicPlayer.*;
+import static musify.handlers.MainMenuMusicHandler.isMainMenuMusicPlaying;
+import static musify.handlers.MainMenuMusicHandler.isMainMenuScreen;
+import static musify.musicplayer.CustomMusicPlayer.*;
 
 @Mod.EventBusSubscriber
 @SideOnly(Side.CLIENT)
@@ -47,12 +45,12 @@ public class PauseEventHandler {
         } else {
 
             if (CustomMusicPlayer.isPaused() && !isMainMenuScreen(mc)) {
-                if (!CustomMusicPlayer.isFading) {
+                if (!CustomMusicPlayer.isFading && !isSilent) {
                     CustomMusicPlayer.adjustVolume();
                 }
                 CustomMusicPlayer.resumeMusic();
             } else if (CustomMusicPlayer.isPaused() && isMainMenuScreen(mc)) {
-                if (!CustomMusicPlayer.isFading) {
+                if (!CustomMusicPlayer.isFading && !isSilent) {
                     CustomMusicPlayer.adjustVolume();
                 }
                 resumeMusic();

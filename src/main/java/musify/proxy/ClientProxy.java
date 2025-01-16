@@ -1,7 +1,7 @@
-package biomemusic.proxy;
+package musify.proxy;
 
-import biomemusic.handlers.BiomeMusicEventHandler;
-import biomemusic.handlers.MainMenuMusicHandler;
+import musify.handlers.BiomeMusicEventHandler;
+import musify.handlers.MainMenuMusicHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.relauncher.Side;

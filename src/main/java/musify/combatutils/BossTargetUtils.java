@@ -1,6 +1,5 @@
-package biomemusic.combatutils;
+package musify.combatutils;
 
-import biomemusic.BiomeMusic;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,7 +10,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.List;
 
-import static biomemusic.handlers.BiomeMusicConfig.bossMusicOptions;
+import static musify.handlers.BiomeMusicConfig.bossMusicOptions;
 
 @SideOnly(Side.CLIENT)
 public class BossTargetUtils {

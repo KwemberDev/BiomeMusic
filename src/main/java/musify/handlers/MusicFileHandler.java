@@ -1,6 +1,6 @@
-package biomemusic.handlers;
+package musify.handlers;
 
-import biomemusic.BiomeMusic;
+import musify.Musify;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -14,7 +14,7 @@ public class MusicFileHandler {
     public static List<String> getAvailableMusicFiles() {
         List<String> musicFiles = new ArrayList<>();
 
-        File folder = BiomeMusic.musicFolder;
+        File folder = Musify.musicFolder;
 
         if (folder != null && folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".ogg"));

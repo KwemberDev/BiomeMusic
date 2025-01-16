@@ -113,17 +113,19 @@ jar {
         ])
     }
 
-    // Include all runtime dependencies (like vorbisspi) in the jar
+    // Include runtime dependencies, but exclude vanilla resources
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 
+    // Exclude specific paths or files
     exclude('META-INF/versions/**', 'module-info.class')
-    // Prevent duplicate files (like META-INF files) that can cause issues
     exclude 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA'
+    exclude 'assets/minecraft/**' // Exclude all vanilla resources
+    exclude 'data/minecraft/**'   // Exclude vanilla data packs
+    exclude 'pack.mcmeta'         // Exclude pack metadata if unnecessary
 
-    // Handle duplicates - 'exclude' or 'include' can be used based on your needs
+    // Handle duplicates to prevent conflicts
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
-
 jar.finalizedBy('reobfJar')

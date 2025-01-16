@@ -1,8 +1,8 @@
-package biomemusic;
+package musify;
 
-import biomemusic.handlers.BiomeMusicConfig;
-import biomemusic.handlers.PauseEventHandler;
-import biomemusic.proxy.CommonProxy;
+import musify.handlers.BiomeMusicConfig;
+import musify.handlers.PauseEventHandler;
+import musify.proxy.CommonProxy;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.Instance;
@@ -15,18 +15,18 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 
-@Mod(modid = BiomeMusic.MODID, version = BiomeMusic.VERSION, name = BiomeMusic.NAME, clientSideOnly = true)
-public class BiomeMusic {
-    public static final String MODID = "biomemusic";
-    public static final String VERSION = "Beta 0.1.9";
+@Mod(modid = Musify.MODID, version = Musify.VERSION, name = Musify.NAME, clientSideOnly = true)
+public class Musify {
+    public static final String MODID = "musify";
+    public static final String VERSION = "Beta 0.1.10";
     public static final String NAME = "BiomeMusic!";
     public static final Logger LOGGER = LogManager.getLogger();
 	
-    @SidedProxy(clientSide = "biomemusic.proxy.ClientProxy", serverSide = "biomemusic.proxy.CommonProxy")
+    @SidedProxy(clientSide = "musify.proxy.ClientProxy", serverSide = "musify.proxy.CommonProxy")
     public static CommonProxy PROXY;
 	
 	@Instance(MODID)
-	public static BiomeMusic instance;
+	public static Musify instance;
 
     public static File musicFolder;
 	
@@ -39,7 +39,6 @@ public class BiomeMusic {
         if (!musicFolder.exists()) {
             musicFolder.mkdirs();
         }
-
 
     }
 

@@ -1,21 +1,18 @@
-package biomemusic.handlers;
+package musify.handlers;
 
-import biomemusic.BiomeMusic;
-import biomemusic.combatutils.BossTargetUtils;
-import biomemusic.combatutils.TargetingUtils;
-import biomemusic.musicplayer.CustomMusicPlayer;
+import musify.Musify;
+import musify.combatutils.BossTargetUtils;
+import musify.combatutils.TargetingUtils;
+import musify.musicplayer.CustomMusicPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.MusicTicker;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.audio.SoundManager;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Biomes;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
@@ -29,8 +26,10 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static biomemusic.handlers.BiomeMusicConfig.*;
-import static biomemusic.musicplayer.CustomMusicPlayer.*;
+import static musify.handlers.BiomeMusicConfig.*;
+import static musify.musicplayer.CustomMusicPlayer.*;
+import static musify.musicutils.JukeboxHandler.findJukebox;
+import static musify.musicutils.JukeboxHandler.isJukeboxPlaying;
 
 @SideOnly(Side.CLIENT)
 @Mod.EventBusSubscriber
@@ -63,13 +62,19 @@ public class BiomeMusicEventHandler {
         tickCounter++;
 
         if (fadeOptions.pollingRate == 0) {
-            if (tickCounter % 800 == 0) {
-                BiomeMusic.LOGGER.error("POLLING RATE IS SET TO 0 IN BIOMEMUSIC CONFIG. THIS WILL BREAK THE MOD. (forcibly stopped the mod to prevent crash.)");
+            if (tickCounter % 1000 == 0) {
+                Musify.LOGGER.error("POLLING RATE IS SET TO 0 IN BIOMEMUSIC CONFIG. THIS WILL BREAK THE MOD. (forcibly stopped the mod to prevent crash.)");
             }
             return;
         }
 
         if (tickCounter % fadeOptions.pollingRate == 0 && event.player != null && event.player.world != null) {
+
+//            Musify.LOGGER.info("is jukebox playing? {}", isJukeboxPlaying);
+            findJukebox(event.player);
+            if (isJukeboxPlaying) {
+                return;
+            }
 
             if (bossMusicOptions.enableBossMusic) {
                 String bossMusic = BossTargetUtils.bossMusicFile(event.player);
@@ -255,7 +260,7 @@ public class BiomeMusicEventHandler {
                 }
             }
         } else {
-            BiomeMusic.LOGGER.error("Biome registry name was null for biome: {}", biome.getBiomeName());
+            Musify.LOGGER.error("Biome registry name was null for biome: {}", biome.getBiomeName());
         }
     }
 

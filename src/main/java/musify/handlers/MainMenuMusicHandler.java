@@ -1,7 +1,7 @@
-package biomemusic.handlers;
+package musify.handlers;
 
-import biomemusic.BiomeMusic;
-import biomemusic.musicplayer.CustomMusicPlayer;
+import musify.Musify;
+import musify.musicplayer.CustomMusicPlayer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.ISound;
 import net.minecraft.client.audio.MusicTicker;
@@ -19,8 +19,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.lang.reflect.Field;
 
-import static biomemusic.handlers.BiomeMusicEventHandler.isCombatMusicPlaying;
-import static biomemusic.musicplayer.CustomMusicPlayer.*;
+import static musify.handlers.BiomeMusicEventHandler.isCombatMusicPlaying;
+import static musify.musicplayer.CustomMusicPlayer.*;
 
 @Mod.EventBusSubscriber
 @SideOnly(Side.CLIENT)
@@ -67,7 +67,7 @@ public class MainMenuMusicHandler {
                 try {
                     playMainMenuMusic();
                 } catch (Exception e) {
-                    BiomeMusic.LOGGER.error("Failed to play main menu music. File not found or invalid: {}", mainMenuMusicPath, e);
+                    Musify.LOGGER.error("Failed to play main menu music. File not found or invalid: {}", mainMenuMusicPath, e);
                 }
 
                  if (isMainMenuMusicPlaying && !isMainMenuScreen(mc)) {

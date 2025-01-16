@@ -1,4 +1,4 @@
-package biomemusic.proxy;
+package musify.proxy;
 
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;

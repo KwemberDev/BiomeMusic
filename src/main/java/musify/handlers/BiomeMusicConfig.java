@@ -1,6 +1,6 @@
-package biomemusic.handlers;
+package musify.handlers;
 
-import biomemusic.BiomeMusic;
+import musify.Musify;
 import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.config.Config;
@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
-@Config(modid = BiomeMusic.MODID)
+@Config(modid = Musify.MODID)
 public class BiomeMusicConfig {
 
 	@Config.Comment("What music to play on the main menu. DEFAULT: [default_music]")
@@ -60,13 +60,17 @@ public class BiomeMusicConfig {
 	@Config.Comment("Boss Music Options.")
 	public static final BossMusicOptions bossMusicOptions = new BossMusicOptions();
 
-	@Mod.EventBusSubscriber(modid = BiomeMusic.MODID)
+	@Config.Name("Misc Options.")
+	@Config.Comment("Miscelanious Options.")
+	public static final MiscOptions miscOptions = new MiscOptions();
+
+	@Mod.EventBusSubscriber(modid = Musify.MODID)
 	public static class EventHandler {
 
 		@SubscribeEvent
 		public static void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
-			if (event.getModID().equals(BiomeMusic.MODID)) {
-				ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
+			if (event.getModID().equals(Musify.MODID)) {
+				ConfigManager.sync(Musify.MODID, Config.Type.INSTANCE);
 				updateBiomeList();
 				updateBiomeTagList();
 				updateMusicList();
@@ -80,7 +84,7 @@ public class BiomeMusicConfig {
 			String biomeName = biome.getRegistryName().toString();
 			biomeMusicMap.putIfAbsent(biomeName, "default_music");
 		}
-		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
+		ConfigManager.sync(Musify.MODID, Config.Type.INSTANCE);
 	}
 
 	public static void updateBiomeTagList() {
@@ -95,7 +99,7 @@ public class BiomeMusicConfig {
 			biomeTagMusicMap.putIfAbsent(tag, "default_music");
 		}
 
-		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
+		ConfigManager.sync(Musify.MODID, Config.Type.INSTANCE);
 	}
 
 
@@ -107,7 +111,7 @@ public class BiomeMusicConfig {
 		for (String music : musicFiles) {
 			musicLink.putIfAbsent(music, "");
 		}
-		ConfigManager.sync(BiomeMusic.MODID, Config.Type.INSTANCE);
+		ConfigManager.sync(Musify.MODID, Config.Type.INSTANCE);
 	}
 
 	public static class FadeOptions {
@@ -192,6 +196,13 @@ public class BiomeMusicConfig {
 		@Config.Name("Boss mob detection range.")
 		@Config.Comment("The range in which the mod will check for a boss mob.")
 		public int bossMusicRange = 50;
+	}
+
+	public static class MiscOptions {
+
+		@Config.Name("Jukebox Detection range")
+		@Config.Comment("Range in which the mod will detect Jukeboxes and silence the music when in range of Jukebox that is playing.")
+		public int jukeboxRange = 25;
 	}
 
 }
