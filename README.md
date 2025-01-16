@@ -12,11 +12,11 @@ This mod has a bunch of different features revolving around Minecraft's soundtra
 - **Ambient Mode!** Want to use sound effects or ambient tracks instead of music? Enable ambient mode to add to vanilla music instead of replacing it!
 
 ## How to use:
-1. The mod will take .ogg sound files from the folder called "musify". This folder is located in the instance path (the same folder where your clients mod, resourcepack and config folders are.) which is usually your .minecraft folder, but can be a different folder depending on if you are using another launcher like curseforge. If this folder does not exist it will be created by the mod upon first startup. If you are a modpack developer that wants to use this mod you will have to mark this folder for export. once you have created the folder or once the mod has created the folder for you, you can put any .ogg sound files you need in the folder.
+1. The mod will take .ogg sound files from the folder called "biomemusic". This folder is located in the instance path (the same folder where your clients mod, resourcepack and config folders are.) which is usually your .minecraft folder, but can be a different folder depending on if you are using another launcher like curseforge. If this folder does not exist it will be created by the mod upon first startup. If you are a modpack developer that wants to use this mod you will have to mark this folder for export. once you have created the folder or once the mod has created the folder for you, you can put any .ogg sound files you need in the folder.
 
 ![folder PNG](https://github.com/user-attachments/assets/6f74f571-86af-4b90-a194-370bc8083aa7)
 
-In the musify folder, put the sound files. Make sure they are .ogg files!
+In the biomemusic folder, put the sound files. Make sure they are .ogg files!
 
 ![image](https://github.com/user-attachments/assets/e1c3f13d-3f9c-44c0-88c5-eff1e8559d73)
 
