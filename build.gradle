@@ -96,6 +96,15 @@ configurations {
         exclude group: 'org.ow2.asm', module: 'asm-analysis'
         exclude group: 'org.ow2.asm', module: 'asm-tree'
         exclude group: 'org.ow2.asm', module: 'asm'
+        // Exclude unwanted dependencies from runtimeClasspath
+        exclude group: 'org.codehaus.plexus', module: 'plexus-utils'
+        // Add more exclusions here if needed, e.g.:
+        // exclude group: 'some.other.group', module: 'some-library'
+        exclude group: 'org.scala-lang', module: 'scala-library'
+        exclude group: 'com.sun.jna', module: 'sun'
+        exclude group: "net.java.dev.jna", module: "jna"
+        exclude group: "com.sun.jna", module: "jna"
+
     }
 }
 
@@ -124,7 +133,6 @@ jar {
     exclude 'assets/minecraft/**' // Exclude all vanilla resources
     exclude 'data/minecraft/**'   // Exclude vanilla data packs
     exclude 'pack.mcmeta'         // Exclude pack metadata if unnecessary
-
     // Handle duplicates to prevent conflicts
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
