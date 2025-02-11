@@ -20,7 +20,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import java.lang.reflect.Field;
 
 import static musify.handlers.BiomeMusicEventHandler.isCombatMusicPlaying;
-import static musify.musicplayer.CustomMusicPlayer.*;
+import static musify.musicplayer.CustomMusicPlayer.combatMusicClip;
+import static musify.musicplayer.CustomMusicPlayer.stopCombatMusic;
 
 @Mod.EventBusSubscriber
 @SideOnly(Side.CLIENT)
