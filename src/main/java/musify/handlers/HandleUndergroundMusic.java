@@ -9,6 +9,7 @@ import java.util.Random;
 import static musify.config.BiomeMusicConfig.iundergroundOptions;
 import static musify.config.BiomeMusicConfig.lfadeOptions;
 import static musify.handlers.BiomeMusicEventHandler.activeMusic;
+import static musify.handlers.BiomeMusicEventHandler.activeTagMusic;
 
 public class HandleUndergroundMusic {
 
@@ -20,19 +21,25 @@ public class HandleUndergroundMusic {
         if (!isUndergroundMusicPlaying) {
             if (activeMusic != null && !activeMusic.isFading()) {
                 activeMusic.stopWithFadeOut(lfadeOptions.customMusicFadeOutTime);
+                if (activeTagMusic != null && !activeTagMusic.isFading()) {
+                    activeTagMusic.stopWithFadeOut(lfadeOptions.customMusicFadeOutTime);
+                }
                 String musicFile = getRandomSongForCavern();
                 if (!musicFile.equals("default_music") && musicFile != null) {
                     isUndergroundMusicPlaying = true;
                     activeMusic = new MusicPlayer(musicFile, false);
                     activeMusic.playWithFadeIn(lfadeOptions.customMusicFadeInTime);
-                } else return;
+                }
             } else if (activeMusic == null) {
                 String musicFile = getRandomSongForCavern();
+                if (activeTagMusic != null && !activeTagMusic.isFading()) {
+                    activeTagMusic.stopWithFadeOut(lfadeOptions.customMusicFadeOutTime);
+                }
                 if (!musicFile.equals("default_music") && musicFile != null) {
                     isUndergroundMusicPlaying = true;
                     activeMusic = new MusicPlayer(musicFile, false);
                     activeMusic.playWithFadeIn(lfadeOptions.customMusicFadeInTime);
-                } else return;
+                }
             }
         }
     }
